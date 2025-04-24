@@ -179,14 +179,13 @@
           // Translate from sprite-based href to standalone icon file
           let iconName = null;
           if (task.icon?.includes('#')) {
-            iconName = task.icon.split('#')[1].toLowerCase();
+            iconName = task.icon.split('#')[1];
           }
-          console.log('Trying to load icon:', `icons/${iconName}.svg`);
 
           const iconEl = document.createElement('img');
           iconEl.className = 'task-icon';
           iconEl.src = iconName
-            ? `./icons/${iconName}.svg`
+            ? `icons/${iconName}.svg`
             : 'https://via.placeholder.com/20?text=?';
           iconEl.alt = iconName || 'icon';
 
