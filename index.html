@@ -190,11 +190,19 @@
 
           const zone = parseInt(zoneMatch[1], 10);
           if (!allCombatTasks[zone]) {
-            allCombatTasks[zone] = { users: new Set(), count: 0 };
+            allCombatTasks[zone] = { users: new Set(), count: 0, monsters: {} };
           }
           allCombatTasks[zone].users.add(username);
           allCombatTasks[zone].count += 1;
+
+          const match = task.name.match(/Defeat\s*-\s*(.*?)\s*Z\d+/);
+          if (match) {
+            const monsterName = match[1].trim();
+            allCombatTasks[zone].monsters[monsterName] = (allCombatTasks[zone].monsters[monsterName] || 0) + 1;
+          }
+
         });
+
 
 
         // create user card
@@ -295,6 +303,8 @@
           <th style="padding: 6px 12px; text-align: center;">Zone</th>
           <th style="padding: 6px 12px; text-align: center;">Users</th>
           <th style="padding: 6px 12px; text-align: center;">Total #</th>
+          <th style="padding: 6px 12px; text-align: center;">Monsters</th>
+
           </tr>
         </thead>
         <tbody></tbody>
@@ -302,15 +312,29 @@
 
       const tbody = table.querySelector('tbody');
       if (shared.length > 0) {
-        shared.forEach(([name, info]) => {
+        shared.forEach(([zone, info]) => {
+            const monstersHTML = Object.entries(info.monsters).map(([monster, count]) => {
+
+            const countTag = count > 1
+              ? `<sup style="position: absolute; top: -6px; right: -6px; font-size: 10px; color: #ccc;">×${count}</sup>`
+              : '';
+            return `
+              <div style="position: relative; display: inline-block; margin: 0 4px;">
+                <img src="icons/${monster}.svg" alt="${monster}" title="${monster}" style="width: 20px; height: 20px;" />
+                ${countTag}
+              </div>
+            `;
+          }).join('');
+
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td style="padding: 6px 12px; text-align: center;">Z${name}</td>
+            <td style="padding: 6px 12px; text-align: center;">Zone ${zone}</td>
             <td style="padding: 6px 12px; text-align: center;">${[...info.users].join(', ')}</td>
             <td style="padding: 6px 12px; text-align: center;">${info.count}</td>
+            <td style="padding: 6px 12px; text-align: center;">${monstersHTML}</td>
           `;
-
           tbody.appendChild(row);
+
         });
       } else {
         const row = document.createElement('tr');

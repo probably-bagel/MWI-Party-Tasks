@@ -24,7 +24,8 @@
       taskName: '[class*="RandomTask_name"]',
       taskButton: '#mwi-manual-upload-btn',
       navTabs: '.NavigationBar_navigationLink__3eAHA',
-      activeTab: 'NavigationBar_active__3R-QS'
+      activeTab: 'NavigationBar_active__3R-QS',
+      navMinorLinks: '.NavigationBar_minorNavigationLinks__dbxh7'
     };
   
     function getCurrentUsername() {
@@ -146,32 +147,48 @@
       row.appendChild(btn);
     }
   
+    function injectGitHubNavLink() {
+      const nav = document.querySelector(SELECTORS.navMinorLinks);
+      if (!nav || document.querySelector('#mwi-party-link')) return;
+  
+      const link = document.createElement('div');
+      link.id = 'mwi-party-link';
+      link.className = 'NavigationBar_minorNavigationLink__31K7Y';
+      link.style.color = 'orange';
+      link.style.cursor = 'pointer';
+      link.textContent = 'Party Tasks Dashboard';
+      link.onclick = () => window.open('https://probably-bagel.github.io/MWI-Party-Tasks/', '_blank');
+  
+      nav.insertBefore(link, nav.firstChild);
+    }
+  
     function setupTasksTabObserver() {
-          const observer = new MutationObserver(() => {
-              const tasksTabActive = Array.from(document.querySelectorAll('.NavigationBar_navigationLink__3eAHA'))
-              .some(link => link.classList.contains('NavigationBar_active__3R-QS') &&
-                    link.textContent.includes('Tasks'));
+      const observer = new MutationObserver(() => {
+        const tasksTabActive = Array.from(document.querySelectorAll(SELECTORS.navTabs))
+          .some(link => link.classList.contains(SELECTORS.activeTab) && link.textContent.includes('Tasks'));
   
-              const slotRow = document.querySelector('.TasksPanel_taskSlotCount__nfhgS');
-              if (tasksTabActive && slotRow && !document.querySelector('#mwi-manual-upload-btn')) {
-                  injectManualUploadButton();
+        const slotRow = document.querySelector(SELECTORS.taskSlotRow);
+        if (tasksTabActive && slotRow && !document.querySelector(SELECTORS.taskButton)) {
+          injectManualUploadButton();
   
-                  const username = getCurrentUsername();
-                  if (!username) return;
+          const username = getCurrentUsername();
+          if (!username) return;
   
-                  const taskList = document.querySelector('[class*="TasksPanel_taskList"]');
-                  if (taskList) {
-                      const tasks = extractTasksFromBoard();
-                      const slots = extractSlotInfo();
-                      uploadToSharedBin(username, tasks, slots);
-                  }
-              }
-          });
+          const taskList = document.querySelector(SELECTORS.taskList);
+          if (taskList) {
+            const tasks = extractTasksFromBoard();
+            const slots = extractSlotInfo();
+            uploadToSharedBin(username, tasks, slots);
+          }
+        }
+      });
   
-          observer.observe(document.body, { childList: true, subtree: true });
-      }
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
   
-  
+    window.addEventListener('load', () => {
+      setTimeout(injectGitHubNavLink, 1000); // Delay to ensure nav element is mounted
+    });
     setupTasksTabObserver();
   })();
   
