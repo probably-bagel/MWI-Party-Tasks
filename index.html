@@ -57,12 +57,34 @@
       text-align: left;
       margin-top: 5px;
     }
+
+    .cooldown-alert {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #ff6;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+    }
+    .cooldown-alert.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
   </style>
 </head>
 <body>
   <div class="header">
     <h1>MWI Party Task Dashboard</h1>
-    <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+    <button class="refresh-btn">🔄 Refresh</button>
   </div>
   <div id="dashboard"></div>
 
@@ -84,9 +106,58 @@
       return data.record || {};
     }
 
-    function isCombatIcon(icon) {
-      return icon?.toLowerCase().includes('combat');
+    let isCoolingDown = false;
+    let cooldownEndsAt = 0;
+    const COOLDOWN_MS = 30000; // 30 seconds
+
+    function showCooldownMessage(secondsLeft) {
+      const alertBox = document.getElementById('cooldownAlert');
+      let remaining = secondsLeft;
+
+      alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
+      alertBox.classList.add('show');
+
+      const interval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) clearInterval(interval);
+        else {
+          alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
+        }
+      }, 1000);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        alertBox.classList.remove('show');
+      }, 4000);
     }
+
+
+
+    async function safeRefreshData() {
+      const now = Date.now();
+      if (isCoolingDown && now < cooldownEndsAt) {
+        const secondsLeft = Math.ceil((cooldownEndsAt - now) / 1000);
+        showCooldownMessage(secondsLeft);
+        return;
+      }
+
+      isCoolingDown = true;
+      cooldownEndsAt = now + COOLDOWN_MS;
+
+      await refreshData();
+
+      setTimeout(() => {
+        isCoolingDown = false;
+      }, COOLDOWN_MS);
+    }
+
+    document.querySelector('.refresh-btn').addEventListener('click', safeRefreshData);
+
+    function isCombatTask(task) {
+      return /Z\d+/.test(task.name);
+    }
+
+
 
     async function refreshData() {
       const container = document.getElementById('dashboard');
@@ -95,7 +166,22 @@
       const allData = await fetchAllUserTasks();
 
       for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
-        tasks.sort((a, b) => isCombatIcon(b.icon) - isCombatIcon(a.icon));
+        tasks.sort((a, b) => {
+          const aCombat = isCombatTask(a);
+          const bCombat = isCombatTask(b);
+
+          if (aCombat && bCombat) {
+            const getZone = name => {
+              const match = name.match(/Z(\d+)/);
+              return match ? parseInt(match[1], 10) : Infinity;
+            };
+            return getZone(a.name) - getZone(b.name);
+          }
+
+          return bCombat - aCombat; // put combat first
+        });
+
+
 
         const card = document.createElement('div');
         card.className = 'card';
@@ -125,7 +211,14 @@
           const taskEl = document.createElement('div');
           taskEl.className = 'task';
 
-          const iconName = task.name.split('-')[0].trim();
+          let iconName;
+          if (task.name.startsWith("Defeat")) {
+            const match = task.name.match(/Defeat\s*-\s*(.*?)\s*Z\d+/);
+            iconName = match ? match[1].trim() : "Defeat";
+          } else {
+            iconName = task.name.split('-')[0].trim();
+          }
+
 
           const iconEl = document.createElement('img');
           iconEl.className = 'task-icon';
@@ -167,5 +260,6 @@
       }
     }
   </script>
+<div id="cooldownAlert" class="cooldown-alert"></div>
 </body>
 </html>
