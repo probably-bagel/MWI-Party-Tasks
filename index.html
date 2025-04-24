@@ -15,14 +15,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      margin-bottom: 16px;
     }
-
-    .header h1 {
-      text-align: center;
-      flex: 1;
-    }
-
     .refresh-btn {
       background-color: #4caf50;
       border: none;
@@ -40,7 +35,6 @@
       max-width: 480px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-
     .task {
       display: flex;
       align-items: center;
@@ -57,7 +51,12 @@
     .task-progress {
       margin-left: auto;
     }
-    
+    .last-updated {
+      font-size: 12px;
+      color: #aaa;
+      text-align: left;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -68,68 +67,21 @@
   <div id="dashboard"></div>
 
   <script>
-    const BIN_IDS = {
-      Medusaz: "680986898960c979a58bcc9e",
-      Saquon: "680986b48561e97a5006383d",
-      ZyzzBraah: "680986e38561e97a50063853"
-    };
-
+    const SHARED_BIN_ID = "6809bdf78960c979a58be9d1";
     const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
 
-    async function fetchUserTasks(username, binId) {
-      return  {
-            "user": "Saquon",
-            "slots": {
-                      "current": 4,
-                      "max": 10
-                    },
-            "tasks": [
-                {
-                    "name": "Cooking - Orange Yogurt",
-                    "progress": 0,
-                    "total": 258,
-                    "gold": 7983,
-                    "tokens": 5,
-                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#cooking"
-                },
-                {
-                    "name": "Milking - Burble Cow",
-                    "progress": 0,
-                    "total": 446,
-                    "gold": 13760,
-                    "tokens": 5,
-                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#milking"
-                },
-                {
-                    "name": "Brewing - Cooking Tea",
-                    "progress": 17,
-                    "total": 100,
-                    "gold": 3674,
-                    "tokens": 4,
-                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#brewing"
-                },
-                {
-                    "name": "Milking - Verdant Cow",
-                    "progress": 2,
-                    "total": 255,
-                    "gold": 3789,
-                    "tokens": 3,
-                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#milking"
-                }
-            ]
-      }
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    async function fetchAllUserTasks() {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
       });
 
       if (!res.ok) {
-        console.warn(`[MWI] Failed to fetch ${username} bin (${res.status})`);
-        return { user: username, tasks: [] };
+        console.warn(`[MWI] Failed to fetch shared bin (${res.status})`);
+        return {};
       }
 
-      const json = await res.json();
-      console.log(json.record);
-      return json.record;
+      const data = await res.json();
+      return data.record || {};
     }
 
     function isCombatIcon(icon) {
@@ -140,17 +92,14 @@
       const container = document.getElementById('dashboard');
       container.innerHTML = '';
 
-      for (const [username, binId] of Object.entries(BIN_IDS)) {
-        const record = await fetchUserTasks(username, binId);
-        const { tasks = [], slots } = record;
+      const allData = await fetchAllUserTasks();
 
-        // Sort combat-related icons first
+      for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
         tasks.sort((a, b) => isCombatIcon(b.icon) - isCombatIcon(a.icon));
 
         const card = document.createElement('div');
         card.className = 'card';
 
-        // Header row with username and slots
         const headerRow = document.createElement('div');
         headerRow.style.display = 'flex';
         headerRow.style.justifyContent = 'space-between';
@@ -176,19 +125,12 @@
           const taskEl = document.createElement('div');
           taskEl.className = 'task';
 
-          // Translate from sprite-based href to standalone icon file
-          let iconName = null;
-
-          iconName = task.name.split('-')[0].trim();
-          
+          const iconName = task.name.split('-')[0].trim();
 
           const iconEl = document.createElement('img');
           iconEl.className = 'task-icon';
-          iconEl.src = iconName
-            ? `icons/${iconName}.svg`
-            : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-
-          iconEl.alt = iconName || 'icon';
+          iconEl.src = iconName ? `icons/${iconName}.svg` : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+          iconEl.alt = iconName;
 
           const label = document.createElement('span');
           label.className = 'task-name';
@@ -205,10 +147,25 @@
           card.appendChild(taskEl);
         });
 
+        if (timestamp) {
+          const formatted = new Date(timestamp).toLocaleString('en-US', {
+            timeZone: 'America/New_York',
+            month: '2-digit',
+            day: '2-digit',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+
+          const tsEl = document.createElement('div');
+          tsEl.className = 'last-updated';
+          tsEl.textContent = `(Last updated: ${formatted})`;
+          card.appendChild(tsEl);
+        }
+
         container.appendChild(card);
       }
     }
-
   </script>
 </body>
 </html>
