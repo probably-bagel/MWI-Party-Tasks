@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MWI Party Task Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #fff;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header h1 {
+      text-align: center;
+      flex: 1;
+    }
+
+    .refresh-btn {
+      background-color: #4caf50;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .card {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px auto;
+      max-width: 480px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .task-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    .task-name {
+      font-weight: bold;
+    }
+    .task-progress {
+      margin-left: auto;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>MWI Party Task Dashboard</h1>
+    <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+  </div>
+  <div id="dashboard"></div>
+
+  <script>
+    const BIN_IDS = {
+      Medusaz: "680986898960c979a58bcc9e",
+      Saquon: "680986b48561e97a5006383d",
+      ZyzzBraah: "680986e38561e97a50063853"
+    };
+
+    const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
+
+    async function fetchUserTasks(username, binId) {
+      return  {
+            "user": "Saquon",
+            "slots": {
+                      "current": 4,
+                      "max": 10
+                    },
+            "tasks": [
+                {
+                    "name": "Cooking - Orange Yogurt",
+                    "progress": 0,
+                    "total": 258,
+                    "gold": 7983,
+                    "tokens": 5,
+                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#cooking"
+                },
+                {
+                    "name": "Milking - Burble Cow",
+                    "progress": 0,
+                    "total": 446,
+                    "gold": 13760,
+                    "tokens": 5,
+                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#milking"
+                },
+                {
+                    "name": "Brewing - Cooking Tea",
+                    "progress": 17,
+                    "total": 100,
+                    "gold": 3674,
+                    "tokens": 4,
+                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#brewing"
+                },
+                {
+                    "name": "Milking - Verdant Cow",
+                    "progress": 2,
+                    "total": 255,
+                    "gold": 3789,
+                    "tokens": 3,
+                    "icon": "https://milkywayidle.com/static/media/skills_sprite.57eb3a30.svg#milking"
+                }
+            ]
+      }
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+        headers: { 'X-Master-Key': API_KEY }
+      });
+
+      if (!res.ok) {
+        console.warn(`[MWI] Failed to fetch ${username} bin (${res.status})`);
+        return { user: username, tasks: [] };
+      }
+
+      const json = await res.json();
+      console.log(json.record);
+      return json.record;
+    }
+
+    function isCombatIcon(icon) {
+      return icon?.toLowerCase().includes('combat');
+    }
+
+    async function refreshData() {
+      const container = document.getElementById('dashboard');
+      container.innerHTML = '';
+
+      for (const [username, binId] of Object.entries(BIN_IDS)) {
+        const record = await fetchUserTasks(username, binId);
+        const { tasks = [], slots } = record;
+
+        // Sort combat-related icons first
+        tasks.sort((a, b) => isCombatIcon(b.icon) - isCombatIcon(a.icon));
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        // Header row with username and slots
+        const headerRow = document.createElement('div');
+        headerRow.style.display = 'flex';
+        headerRow.style.justifyContent = 'space-between';
+        headerRow.style.alignItems = 'center';
+        headerRow.style.marginBottom = '12px';
+
+        const nameEl = document.createElement('h2');
+        nameEl.textContent = username;
+        nameEl.style.margin = 0;
+
+        const slotsEl = document.createElement('div');
+        if (slots) {
+          slotsEl.textContent = `${slots.current} / ${slots.max} Tasks`;
+          slotsEl.style.color = '#aaa';
+          slotsEl.style.fontSize = '14px';
+        }
+
+        headerRow.appendChild(nameEl);
+        headerRow.appendChild(slotsEl);
+        card.appendChild(headerRow);
+
+        tasks.forEach(task => {
+          const taskEl = document.createElement('div');
+          taskEl.className = 'task';
+
+          // Translate from sprite-based href to standalone icon file
+          let iconName = null;
+          if (task.icon?.includes('#')) {
+            iconName = task.icon.split('#')[1].toLowerCase();
+          }
+
+          const iconEl = document.createElement('img');
+          iconEl.className = 'task-icon';
+          iconEl.src = iconName
+            ? `icons/${iconName}.svg`
+            : 'https://via.placeholder.com/20?text=?';
+          iconEl.alt = iconName || 'icon';
+
+          const label = document.createElement('span');
+          label.className = 'task-name';
+          label.textContent = task.name;
+
+          const progress = document.createElement('span');
+          progress.className = 'task-progress';
+          progress.textContent = `${task.progress} / ${task.total}`;
+
+          taskEl.appendChild(iconEl);
+          taskEl.appendChild(label);
+          taskEl.appendChild(progress);
+
+          card.appendChild(taskEl);
+        });
+
+        container.appendChild(card);
+      }
+    }
+
+  </script>
+</body>
+</html>
