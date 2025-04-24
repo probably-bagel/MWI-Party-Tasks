@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MWI Party Task Dashboard</title>
+  <title>MWI - Party Tasks</title>
   <style>
     body {
       font-family: sans-serif;
@@ -83,7 +83,7 @@
 </head>
 <body>
   <div class="header">
-    <h1>MWI Party Task Dashboard</h1>
+    <h1>MWI Party Tasks</h1>
     <button class="refresh-btn">🔄 Refresh</button>
   </div>
   <div id="dashboard"></div>
@@ -164,6 +164,7 @@
       container.innerHTML = '';
 
       const allData = await fetchAllUserTasks();
+      const allCombatTasks = {};
 
       for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
         tasks.sort((a, b) => {
@@ -181,8 +182,22 @@
           return bCombat - aCombat; // put combat first
         });
 
+        // collect combat task info
+        // collect combat task info grouped by zone
+        tasks.forEach(task => {
+          const zoneMatch = task.name.match(/Z(\d+)/);
+          if (!zoneMatch) return;
+
+          const zone = parseInt(zoneMatch[1], 10);
+          if (!allCombatTasks[zone]) {
+            allCombatTasks[zone] = { users: new Set(), count: 0 };
+          }
+          allCombatTasks[zone].users.add(username);
+          allCombatTasks[zone].count += 1;
+        });
 
 
+        // create user card
         const card = document.createElement('div');
         card.className = 'card';
 
@@ -218,7 +233,6 @@
           } else {
             iconName = task.name.split('-')[0].trim();
           }
-
 
           const iconEl = document.createElement('img');
           iconEl.className = 'task-icon';
@@ -258,7 +272,56 @@
 
         container.appendChild(card);
       }
+
+      // render shared combat task table once
+      const shared = Object.entries(allCombatTasks)
+        .filter(([_, val]) => val.users.size > 1)
+        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+
+      const heading = document.createElement('h2');
+      heading.textContent = '🧠 Common Combat Tasks';
+      heading.style.textAlign = 'center';
+      heading.style.marginTop = '40px';
+
+      const table = document.createElement('table');
+      table.style.margin = '16px auto 40px';
+      table.style.borderCollapse = 'collapse';
+      table.style.fontSize = '14px';
+
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom: 1px solid #555;">
+          <th style="padding: 6px 12px; text-align: center;">Zone</th>
+          <th style="padding: 6px 12px; text-align: center;">Users</th>
+          <th style="padding: 6px 12px; text-align: center;">Total #</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      if (shared.length > 0) {
+        shared.forEach(([name, info]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td style="padding: 6px 12px; text-align: center;">Z${name}</td>
+            <td style="padding: 6px 12px; text-align: center;">${[...info.users].join(', ')}</td>
+            <td style="padding: 6px 12px; text-align: center;">${info.count}</td>
+          `;
+
+          tbody.appendChild(row);
+        });
+      } else {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="3" style="padding: 12px; text-align: center; color: #888;">No matches :(</td>`;
+        tbody.appendChild(row);
+      }
+
+      container.appendChild(heading);
+      container.appendChild(table);
     }
+
   </script>
 <div id="cooldownAlert" class="cooldown-alert"></div>
 </body>
