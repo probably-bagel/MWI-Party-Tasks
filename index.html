@@ -12,11 +12,10 @@
       padding: 20px;
     }
     .header {
+      grid-column: 1 / -1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
     }
     .refresh-btn {
       background-color: #4caf50;
@@ -26,14 +25,6 @@
       font-size: 14px;
       cursor: pointer;
       border-radius: 4px;
-    }
-    .card {
-      background-color: #1e1e1e;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 16px auto;
-      max-width: 480px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
     .task {
       display: flex;
@@ -79,6 +70,41 @@
       pointer-events: auto;
     }
 
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr minmax(auto, 600px) 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+
+    .left-placeholder {
+      justify-self: end;
+      margin-right: 20px;
+    }
+
+    /* make the dashboard itself a 3-column grid */
+    #dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 500px;
+      margin: 0;
+      padding: 16px;
+    }
+
+    /* keep your summary panel styling (optional tweak) */
+    #summary-section {
+      justify-self: start;
+      margin-left: 20px;
+    }
+
+
   </style>
 </head>
 <body>
@@ -86,53 +112,64 @@
     <h1>MWI Party Tasks</h1>
     <button class="refresh-btn">🔄 Refresh</button>
   </div>
-  <div id="dashboard"></div>
+  <div class="main-layout">
+    <div class="left-placeholder"></div>
+    <div id="dashboard"></div>
+    <div id="summary-section"></div>
+  </div>
+  
+  
 
   <script>
     const SHARED_BIN_ID = "6809bdf78960c979a58be9d1";
     const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
-
+  
     async function fetchAllUserTasks() {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
       });
-
       if (!res.ok) {
         console.warn(`[MWI] Failed to fetch shared bin (${res.status})`);
         return {};
       }
-
       const data = await res.json();
       return data.record || {};
     }
-
+  
+    window.addEventListener("DOMContentLoaded", () => {
+      const cached = localStorage.getItem("MWI_LastDashboardData");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          renderData(parsed);
+        } catch (err) {
+          console.warn("[MWI] Failed to load cached dashboard data:", err);
+        }
+      }
+    });
+  
     let isCoolingDown = false;
     let cooldownEndsAt = 0;
-    const COOLDOWN_MS = 30000; // 30 seconds
-
+    const COOLDOWN_MS = 30000;
+  
     function showCooldownMessage(secondsLeft) {
       const alertBox = document.getElementById('cooldownAlert');
       let remaining = secondsLeft;
-
       alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
       alertBox.classList.add('show');
-
+  
       const interval = setInterval(() => {
         remaining--;
         if (remaining <= 0) clearInterval(interval);
-        else {
-          alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
-        }
+        else alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
       }, 1000);
-
+  
       setTimeout(() => {
         clearInterval(interval);
         alertBox.classList.remove('show');
       }, 4000);
     }
-
-
-
+  
     async function safeRefreshData() {
       const now = Date.now();
       if (isCoolingDown && now < cooldownEndsAt) {
@@ -140,72 +177,45 @@
         showCooldownMessage(secondsLeft);
         return;
       }
-
+  
       isCoolingDown = true;
       cooldownEndsAt = now + COOLDOWN_MS;
-
-      await refreshData();
-
-      setTimeout(() => {
-        isCoolingDown = false;
-      }, COOLDOWN_MS);
+  
+      const allData = await fetchAllUserTasks();
+      localStorage.setItem("MWI_LastDashboardData", JSON.stringify(allData));
+      renderData(allData);
+  
+      setTimeout(() => { isCoolingDown = false; }, COOLDOWN_MS);
     }
-
+  
     document.querySelector('.refresh-btn').addEventListener('click', safeRefreshData);
-
+  
     function isCombatTask(task) {
       return /Z\d+/.test(task.name);
     }
-
-
-
-    async function refreshData() {
+  
+    function renderData(allData) {
       const container = document.getElementById('dashboard');
       container.innerHTML = '';
 
-      const allData = await fetchAllUserTasks();
       const allCombatTasks = {};
 
       for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
         tasks.sort((a, b) => {
-          const aCombat = isCombatTask(a);
-          const bCombat = isCombatTask(b);
+          const aCombat = a.name.includes("Defeat");
+          const bCombat = b.name.includes("Defeat");
 
           if (aCombat && bCombat) {
-            const getZone = name => {
-              const match = name.match(/Z(\d+)/);
-              return match ? parseInt(match[1], 10) : Infinity;
-            };
-            return getZone(a.name) - getZone(b.name);
+            const zoneA = +(a.name.match(/Z(\d+)/)?.[1] || Infinity);
+            const zoneB = +(b.name.match(/Z(\d+)/)?.[1] || Infinity);
+            return zoneA - zoneB;
           }
-
-          return bCombat - aCombat; // put combat first
+          if (aCombat) return -1;
+          if (bCombat) return  1;
+          return a.name.localeCompare(b.name);
         });
 
-        // collect combat task info
-        // collect combat task info grouped by zone
-        tasks.forEach(task => {
-          const zoneMatch = task.name.match(/Z(\d+)/);
-          if (!zoneMatch) return;
-
-          const zone = parseInt(zoneMatch[1], 10);
-          if (!allCombatTasks[zone]) {
-            allCombatTasks[zone] = { users: new Set(), count: 0, monsters: {} };
-          }
-          allCombatTasks[zone].users.add(username);
-          allCombatTasks[zone].count += 1;
-
-          const match = task.name.match(/Defeat\s*-\s*(.*?)\s*Z\d+/);
-          if (match) {
-            const monsterName = match[1].trim();
-            allCombatTasks[zone].monsters[monsterName] = (allCombatTasks[zone].monsters[monsterName] || 0) + 1;
-          }
-
-        });
-
-
-
-        // create user card
+        // build individual user task cards
         const card = document.createElement('div');
         card.className = 'card';
 
@@ -231,13 +241,28 @@
         card.appendChild(headerRow);
 
         tasks.forEach(task => {
+          const zoneMatch = task.name.match(/Z(\d+)/);
+          if (zoneMatch && task.name.includes("Defeat")) {
+            const zone = parseInt(zoneMatch[1], 10);
+            if (!allCombatTasks[zone]) {
+              allCombatTasks[zone] = { users: new Set(), count: 0, monsters: {} };
+            }
+            allCombatTasks[zone].users.add(username);
+            allCombatTasks[zone].count += 1;
+
+            const monsterMatch = task.name.match(/Defeat\s*-\s*(.*?)\s*Z\d+/);
+            if (monsterMatch) {
+              const monsterName = monsterMatch[1].trim();
+              allCombatTasks[zone].monsters[monsterName] = (allCombatTasks[zone].monsters[monsterName] || 0) + 1;
+            }
+          }
+
           const taskEl = document.createElement('div');
           taskEl.className = 'task';
 
           let iconName;
           if (task.name.startsWith("Defeat")) {
-            const match = task.name.match(/Defeat\s*-\s*(.*?)\s*Z\d+/);
-            iconName = match ? match[1].trim() : "Defeat";
+            iconName = task.name.split("-")[1].trim().split(" Z")[0].replace(" ","_"); 
           } else {
             iconName = task.name.split('-')[0].trim();
           }
@@ -258,7 +283,6 @@
           taskEl.appendChild(iconEl);
           taskEl.appendChild(label);
           taskEl.appendChild(progress);
-
           card.appendChild(taskEl);
         });
 
@@ -271,7 +295,6 @@
             minute: '2-digit',
             hour12: true
           });
-
           const tsEl = document.createElement('div');
           tsEl.className = 'last-updated';
           tsEl.textContent = `(Last updated: ${formatted})`;
@@ -281,11 +304,10 @@
         container.appendChild(card);
       }
 
-      // render shared combat task table once
-      const shared = Object.entries(allCombatTasks)
+      // correctly filter shared zones
+      const sharedZones = Object.entries(allCombatTasks)
         .filter(([_, val]) => val.users.size > 1)
-        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
-
+        .sort((a, b) => b[1].count - a[1].count);
 
       const heading = document.createElement('h2');
       heading.textContent = '🧠 Common Combat Tasks';
@@ -296,31 +318,27 @@
       table.style.margin = '16px auto 40px';
       table.style.borderCollapse = 'collapse';
       table.style.fontSize = '14px';
-
       table.innerHTML = `
         <thead>
           <tr style="border-bottom: 1px solid #555;">
-          <th style="padding: 6px 12px; text-align: center;">Zone</th>
-          <th style="padding: 6px 12px; text-align: center;">Users</th>
-          <th style="padding: 6px 12px; text-align: center;">Total #</th>
-          <th style="padding: 6px 12px; text-align: center;">Monsters</th>
-
+            <th style="padding: 6px 12px; text-align: center;">Zone</th>
+            <th style="padding: 6px 12px; text-align: center;">Monsters</th>
           </tr>
         </thead>
         <tbody></tbody>
       `;
 
       const tbody = table.querySelector('tbody');
-      if (shared.length > 0) {
-        shared.forEach(([zone, info]) => {
-            const monstersHTML = Object.entries(info.monsters).map(([monster, count]) => {
-
+      if (sharedZones.length > 0) {
+        sharedZones.forEach(([zone, info]) => {
+          
+          const monstersHTML = Object.entries(info.monsters).map(([monster, count]) => {
             const countTag = count > 1
               ? `<sup style="position: absolute; top: -6px; right: -6px; font-size: 10px; color: #ccc;">×${count}</sup>`
               : '';
             return `
               <div style="position: relative; display: inline-block; margin: 0 4px;">
-                <img src="icons/${monster}.svg" alt="${monster}" title="${monster}" style="width: 20px; height: 20px;" />
+                <img src="icons/${monster.replace(" ","_")}.svg" alt="${monster}" title="${monster}" style="width: 20px; height: 20px;" />
                 ${countTag}
               </div>
             `;
@@ -328,25 +346,25 @@
 
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td style="padding: 6px 12px; text-align: center;">Zone ${zone}</td>
-            <td style="padding: 6px 12px; text-align: center;">${[...info.users].join(', ')}</td>
-            <td style="padding: 6px 12px; text-align: center;">${info.count}</td>
+            <td style="padding: 6px 12px; text-align: center;">Z${zone}</td>
             <td style="padding: 6px 12px; text-align: center;">${monstersHTML}</td>
           `;
           tbody.appendChild(row);
-
         });
       } else {
         const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="3" style="padding: 12px; text-align: center; color: #888;">No matches :(</td>`;
+        row.innerHTML = `<td colspan="4" style="padding: 12px; text-align: center; color: #888;">No matches :(</td>`;
         tbody.appendChild(row);
       }
 
-      container.appendChild(heading);
-      container.appendChild(table);
+      const summarySection = document.getElementById('summary-section');
+      summarySection.innerHTML = '';
+      summarySection.appendChild(heading);
+      summarySection.appendChild(table);
     }
 
   </script>
+  
 <div id="cooldownAlert" class="cooldown-alert"></div>
 </body>
 </html>
