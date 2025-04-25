@@ -6,6 +6,9 @@ A crappy little mostly ChatGPT'd script and webpage that uploads your Milky Way 
 The site to view all users tasks (currently only supports Saquon, ZyzzBraah, and Medusaz) is [here](https://probably-bagel.github.io/MWI-Party-Tasks/).
 
 
+
+
+
 ### Installation Instructions:
 1. Open the [MWI Task Sync.js](https://github.com/probably-bagel/MWI-Party-Tasks/blob/main/MWI%20Task%20Sync.js) file.
 2. Copy all of the contents of the file
@@ -26,6 +29,13 @@ The site to view all users tasks (currently only supports Saquon, ZyzzBraah, and
   ![image](https://github.com/user-attachments/assets/50dfd563-2cfa-4581-aaad-d7454e004826)
   
 8. Refresh your Milky Way Idle session and you should be all set. 
+
+
+
+
+
+
+
 
 
 ### Update Instructions:
