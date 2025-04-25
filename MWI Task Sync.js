@@ -14,7 +14,7 @@
   
     const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
     const BIN_ID = "6809bdf78960c979a58be9d1";
-    const MANUAL_UPLOAD_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+    const MANUAL_UPLOAD_INTERVAL_MS = 60000;
   
     const SELECTORS = {
       username: '[data-name]',
@@ -43,7 +43,12 @@
       if (!list) return [];
   
       return Array.from(list.querySelectorAll(SELECTORS.taskElements)).map(el => {
-        const name = el.querySelector(SELECTORS.taskName)?.textContent.trim();
+        const nameEl = el.querySelector(SELECTORS.taskName);
+        let name = '';
+        if (nameEl) {
+          name = nameEl.innerText.trim();
+        }
+        
         const [_, progress, total] = el.innerText.match(/Progress:\s*(\d+)\s*\/\s*(\d+)/) || [];
         const rewards = el.querySelectorAll('.Item_itemContainer__x7kH1');
   
@@ -77,15 +82,15 @@
       const currentCount = GM_getValue(countKey, 0);
       const last = GM_getValue(`lastUpload_${username}`);
   
-      if (currentCount >= 10) return console.warn(`[MWI] Hourly limit hit for ${username}`);
-      if (areTasksSimilar(last?.tasks, tasks)) return console.log(`[MWI] No changes for ${username}`);
+      if (currentCount >= 10) return console.warn(`[MWI Party Tasks] -- Hourly limit hit for ${username}`);
+      if (areTasksSimilar(last?.tasks, tasks)) return console.log(`[MWI Party Tasks] -- No changes for ${username}`);
   
       GM_xmlhttpRequest({
         method: 'GET',
         url: `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`,
         headers: { 'X-Master-Key': API_KEY },
         onload: res => {
-          if (res.status !== 200) return console.error(`[MWI] GET failed (${res.status})`);
+          if (res.status !== 200) return console.error(`[MWI Party Tasks] -- GET failed (${res.status})`);
   
           let existing = {};
           try { existing = JSON.parse(res.responseText).record || {}; } catch (e) {}
@@ -106,14 +111,15 @@
                 GM_setValue(`lastUpload_${username}`, { tasks });
                 GM_setValue(countKey, currentCount + 1);
                 if (isManual) GM_setValue(`lastManualUpload_${username}`, Date.now());
+                console.log("[MWI Party Tasks] -- Tasks uploaded!")
               } else {
-                console.warn(`[MWI] PUT error (${putRes.status})`, putRes.responseText);
+                console.warn(`[MWI Party Tasks] -- PUT error (${putRes.status})`, putRes.responseText);
               }
             },
-            onerror: e => console.error('[MWI] PUT request error', e)
+            onerror: e => console.error('[MWI Party Tasks] -- PUT request error', e)
           });
         },
-        onerror: e => console.error('[MWI] GET request error', e)
+        onerror: e => console.error('[MWI Party Tasks] -- GET request error', e)
       });
     }
   
@@ -135,7 +141,7 @@
         const now = Date.now();
   
         if (now - last < MANUAL_UPLOAD_INTERVAL_MS) {
-          alert(`⛔ Stop spamming ho. Try again in ${Math.ceil((MANUAL_UPLOAD_INTERVAL_MS - (now - last)) / 1000)}s.`);
+          alert(`⛔ I'm on the free plan. Slow down! Try again in ${Math.ceil((MANUAL_UPLOAD_INTERVAL_MS - (now - last)) / 1000)}s.`);
           return;
         }
   
@@ -166,12 +172,13 @@
       const observer = new MutationObserver(() => {
         const tasksTabActive = Array.from(document.querySelectorAll(SELECTORS.navTabs))
           .some(link => link.classList.contains(SELECTORS.activeTab) && link.textContent.includes('Tasks'));
-  
+        const username = getCurrentUsername();
+        const allow_list = ["Saquon","ZyzzBraah","Medusaz"]
         const slotRow = document.querySelector(SELECTORS.taskSlotRow);
-        if (tasksTabActive && slotRow && !document.querySelector(SELECTORS.taskButton)) {
-          injectManualUploadButton();
+        if (tasksTabActive && slotRow && !document.querySelector(SELECTORS.taskButton) && allow_list.includes(username)) {
   
-          const username = getCurrentUsername();
+          injectManualUploadButton();
+
           if (!username) return;
   
           const taskList = document.querySelector(SELECTORS.taskList);
