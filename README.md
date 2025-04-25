@@ -1,7 +1,7 @@
 # MWI Party Tasks
 
 ### What is it
-A crappy little mostly ChatGPT'd script and webpage that uploads your Milky Way Idle tasks when you click on the "Tasks" tab. It sents a data object to jsonbin.io containing a list of all your current tasks. I also built a webpage to allow everyone to view all current tasks in the party so we can strategize which combat rooms to switch to and when. The goal is to AFK at the best profiting place until 2 or more people have a combat task in the same zone.
+A lil ChatGPT'd script and webpage that uploads your Milky Way Idle tasks when you click on the "Tasks" tab. It sents a data object to jsonbin.io containing a list of all your current tasks. I also built a webpage to allow everyone to view all current tasks in the party so we can strategize which combat rooms to switch to and when. The goal is to AFK at the best profiting place until 2 or more people have a combat task in the same zone.
 
 The site to view all users tasks (currently only supports Saquon, ZyzzBraah, and Medusaz) is [here](https://probably-bagel.github.io/MWI-Party-Tasks/).
 
