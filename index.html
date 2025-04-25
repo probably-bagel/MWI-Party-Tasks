@@ -152,42 +152,44 @@
     });
   
     let isCoolingDown = false;
-    let cooldownEndsAt = 0;
     const COOLDOWN_MS = 30000;
+    let cooldownEndsAt = parseInt(localStorage.getItem('MWI_CooldownEndsAt')) || 0;
+
   
     function showCooldownMessage(secondsLeft) {
       const alertBox = document.getElementById('cooldownAlert');
       let remaining = secondsLeft;
       alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
       alertBox.classList.add('show');
-  
+
       const interval = setInterval(() => {
         remaining--;
         if (remaining <= 0) clearInterval(interval);
         else alertBox.textContent = `Stop spamming ho. I'm on the free plan. Try again in ${remaining} sec${remaining !== 1 ? 's' : ''}.`;
       }, 1000);
-  
+
       setTimeout(() => {
         clearInterval(interval);
         alertBox.classList.remove('show');
       }, 4000);
     }
-  
+
     async function safeRefreshData() {
       const now = Date.now();
-      if (isCoolingDown && now < cooldownEndsAt) {
+      if (now < cooldownEndsAt) {
         const secondsLeft = Math.ceil((cooldownEndsAt - now) / 1000);
         showCooldownMessage(secondsLeft);
         return;
       }
-  
+
       isCoolingDown = true;
       cooldownEndsAt = now + COOLDOWN_MS;
-  
+      localStorage.setItem('MWI_CooldownEndsAt', cooldownEndsAt.toString());
+
       const allData = await fetchAllUserTasks();
-      localStorage.setItem("MWI_LastDashboardData", JSON.stringify(allData));
+      localStorage.setItem('MWI_LastDashboardData', JSON.stringify(allData));
       renderData(allData);
-  
+
       setTimeout(() => { isCoolingDown = false; }, COOLDOWN_MS);
     }
   
