@@ -47,10 +47,12 @@
         const nameEl = el.querySelector(SELECTORS.taskName);
         let name = '';
         if (nameEl) {
-          const textNode = Array.from(nameEl.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
-          const zoneEl = nameEl.querySelector('.script_taskMapIndex');
-          name = (textNode?.textContent.trim() || '') + (zoneEl ? ` ${zoneEl.textContent.trim()}` : '');
+          const baseText = nameEl.cloneNode(true);
+          const icons = baseText.querySelectorAll('svg, .Icon_icon__2LtL_');
+          icons.forEach(i => i.remove());
+          name = baseText.textContent.trim();
         }
+        
     
         const [_, progress, total] = el.innerText.match(/Progress:\s*(\d+)\s*\/\s*(\d+)/) || [];
         const rewards = el.querySelectorAll('.Item_itemContainer__x7kH1');
