@@ -15,7 +15,8 @@
     const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
     const BIN_ID = "6809bdf78960c979a58be9d1";
     const MANUAL_UPLOAD_INTERVAL_MS = 60000;
-  
+    const ALLOWED_USERS = ['Saquon', 'ZyzzBraah', 'Medusaz'];
+
     const SELECTORS = {
       username: '[data-name]',
       taskSlotRow: '.TasksPanel_taskSlotCount__nfhgS',
@@ -78,6 +79,10 @@
     }
   
     function uploadToSharedBin(username, tasks, slots, isManual = false) {
+      if (!ALLOWED_USERS.includes(username)) {
+          console.warn(`[MWI Party Tasks] -- User "${username}" not allowed to upload.`);
+          return;
+      }
       const countKey = getUploadCountKey(username);
       const currentCount = GM_getValue(countKey, 0);
       const last = GM_getValue(`lastUpload_${username}`);
@@ -173,9 +178,8 @@
         const tasksTabActive = Array.from(document.querySelectorAll(SELECTORS.navTabs))
           .some(link => link.classList.contains(SELECTORS.activeTab) && link.textContent.includes('Tasks'));
         const username = getCurrentUsername();
-        const allow_list = ["Saquon","ZyzzBraah","Medusaz"]
         const slotRow = document.querySelector(SELECTORS.taskSlotRow);
-        if (tasksTabActive && slotRow && !document.querySelector(SELECTORS.taskButton) && allow_list.includes(username)) {
+        if (tasksTabActive && slotRow && !document.querySelector(SELECTORS.taskButton) && ALLOWED_USERS.includes(username)){
   
           injectManualUploadButton();
 
