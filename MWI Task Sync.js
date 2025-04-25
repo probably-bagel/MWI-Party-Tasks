@@ -42,17 +42,19 @@
     function extractTasksFromBoard() {
       const list = document.querySelector(SELECTORS.taskList);
       if (!list) return [];
-  
+    
       return Array.from(list.querySelectorAll(SELECTORS.taskElements)).map(el => {
         const nameEl = el.querySelector(SELECTORS.taskName);
         let name = '';
         if (nameEl) {
-          name = nameEl.innerText.trim();
+          const textNode = Array.from(nameEl.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+          const zoneEl = nameEl.querySelector('.script_taskMapIndex');
+          name = (textNode?.textContent.trim() || '') + (zoneEl ? ` ${zoneEl.textContent.trim()}` : '');
         }
-        
+    
         const [_, progress, total] = el.innerText.match(/Progress:\s*(\d+)\s*\/\s*(\d+)/) || [];
         const rewards = el.querySelectorAll('.Item_itemContainer__x7kH1');
-  
+    
         let gold = null, tokens = null;
         rewards.forEach(div => {
           const icon = div.querySelector('svg use')?.getAttribute('href') || '';
@@ -60,10 +62,11 @@
           if (icon.includes('coin')) gold = count;
           if (icon.includes('task_token')) tokens = count;
         });
-  
+    
         return { name, progress: +progress, total: +total, gold, tokens };
       });
     }
+    
   
     function areTasksSimilar(oldTasks, newTasks) {
       if (!oldTasks || oldTasks.length !== newTasks.length) return false;

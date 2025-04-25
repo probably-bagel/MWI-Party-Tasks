@@ -83,7 +83,6 @@
       margin-right: 20px;
     }
 
-    /* make the dashboard itself a 3-column grid */
     #dashboard {
       display: flex;
       flex-direction: column;
@@ -98,7 +97,11 @@
       padding: 16px;
     }
 
-    /* keep your summary panel styling (optional tweak) */
+    .zone-highlight {
+      color: #ffa500;
+      font-weight: bold;
+    }
+
     #summary-section {
       justify-self: start;
       margin-left: 20px;
@@ -215,7 +218,6 @@
           return a.name.localeCompare(b.name);
         });
 
-        // build individual user task cards
         const card = document.createElement('div');
         card.className = 'card';
 
@@ -242,7 +244,7 @@
 
         tasks.forEach(task => {
           const zoneMatch = task.name.match(/Z(\d+)/);
-          if (zoneMatch && task.name.includes("Defeat")) {
+          if (zoneMatch) {
             const zone = parseInt(zoneMatch[1], 10);
             if (!allCombatTasks[zone]) {
               allCombatTasks[zone] = { users: new Set(), count: 0, monsters: {} };
@@ -274,7 +276,14 @@
 
           const label = document.createElement('span');
           label.className = 'task-name';
-          label.textContent = task.name;
+          if (zoneMatch) {
+            const [zoneText] = zoneMatch;
+            const parts = task.name.split(zoneText);
+            
+            label.innerHTML = `${parts[0]}<span class="zone-highlight">${zoneText}</span>${parts[1] || ''}`;
+          } else {
+            label.textContent = task.name;
+          }
 
           const progress = document.createElement('span');
           progress.className = 'task-progress';
@@ -304,7 +313,6 @@
         container.appendChild(card);
       }
 
-      // correctly filter shared zones
       const sharedZones = Object.entries(allCombatTasks)
         .filter(([_, val]) => val.users.size > 1)
         .sort((a, b) => b[1].count - a[1].count);
@@ -346,7 +354,9 @@
 
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td style="padding: 6px 12px; text-align: center;">Z${zone}</td>
+            <td style="padding: 6px 12px; text-align: center;">
+              <span class="zone-highlight">Z${zone}</span>
+            </td>
             <td style="padding: 6px 12px; text-align: center;">${monstersHTML}</td>
           `;
           tbody.appendChild(row);
