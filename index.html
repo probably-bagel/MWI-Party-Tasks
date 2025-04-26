@@ -18,7 +18,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 32px;
+      margin-bottom: 0px;
     }
     .header h1 {
       font-size: 36px;
@@ -27,6 +27,15 @@
       -webkit-text-fill-color: transparent;
     }
 
+    .hide-desktop {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .hide-desktop {
+        display: inline;
+      }
+    }
 
     .refresh-btn {
       background-color: #4caf50;
@@ -59,8 +68,31 @@
       width: 100%;
       max-width: 1500px; 
       margin: 0 auto;
+      margin-top: 12px;
       padding: 0 16px;
       box-sizing: border-box;
+    }
+
+    .fixed-refresh {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      z-index: 1000;
+    }
+
+    .fixed-refresh:hover {
+      background-color: #45a047;
     }
 
     /* ====== Card Styles ====== */
@@ -168,30 +200,27 @@
     .monster-cell {
       display: inline-block;
       text-align: center;
-      margin: 2px 3px;
+      margin: 3px 5px;
       position: relative;
     }
 
     .monster-cell img {
-      width: 20px;
-      height: 20px;
-      display: block;
-      margin: 0 auto;
+      width: 22px;
+      height: 22px;
     }
 
     .monster-cell sup {
       position: absolute;
-      top: -6px;
-      right: -6px;
-      font-size: 10px;
+      top: -7px;
+      right: -7px;
+      font-size: 11px;
       color: #ccc;
     }
 
     .remaining-kills {
-      font-size: 11px; 
-      color: #ccc;    
-      margin-top: 3px; 
-      font-weight: 500;
+      font-size: 11px;
+      color: #ccc;
+      margin-top: 2px;
     }
     .summary-table {
       width: 100%;
@@ -201,27 +230,56 @@
       table-layout: fixed;
     }
 
-    .summary-table th, .summary-table td {
+    .summary-table th{
       padding: 8px;
       text-align: center;
       border-bottom: none;
       vertical-align: top;
       word-wrap: break-word;
     }
+    .summary-table td:first-child {
+      vertical-align: middle;
+      font-weight: bold;
+    }
+    .summary-table td {
+      border-bottom: 1px solid rgba(255,255,255,0.05); /* light divider like cards */
+    }
 
     .summary-table thead th {
-      border-bottom: 2px solid #777;
+      border-bottom: 2px solid rgba(255,255,255,0.1); /* <--- MATCH CARD BORDER */
       font-size: 15px;
+      font-weight: 600;
     }
     #summary-section h2 {
       text-align: center;
-      margin-top: 20px;
       margin-bottom: 12px;
+      font-weight: 600;
     }
 
     #summary-section td:first-child {
       vertical-align: middle;
+      
     }
+    #summary-section {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 600px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+    }
+
+    #summary-section table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    #summary-section th, #summary-section td {
+      padding: 8px;
+      text-align: center;
+    }
+
 
     /* ====== Cooldown Alert ====== */
     .cooldown-alert {
@@ -250,15 +308,16 @@
 
 <body>
   <div class="header">
-    <h1>Milky Way Idle - Party Tasks</h1>
-    <button class="refresh-btn">
-      ↻ Refresh
-    </button>    
+    <h1 class="page-title">
+      Milky Way Idle <span class="hide-desktop"><br></span> Party Tasks
+    </h1>
   </div>
   
   <div class="main-layout">
-    <div id="dashboard"></div>
     <div id="summary-section"></div>
+    <div id="dashboard"></div>
+  <button class="fixed-refresh">↻ Refresh</button>
+
   </div>
 
   <div id="cooldownAlert" class="cooldown-alert"></div>
