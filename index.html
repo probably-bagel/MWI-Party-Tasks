@@ -465,14 +465,15 @@
         });
 
         return `
-          <div class="monster-cell">
+          <div class="monster-cell" title="Max kills needed: ${maxRemaining}">
             <img src="icons/${monster.replace(/ /g, "_")}.svg" alt="${monster}" title="${monster}">
-            ${users.size > 1 ? `<sup>×${users.size}</sup>` : ''}
-            <div class="remaining-kills">${maxRemaining}</div>
+            ${users.size > 1 ? `<sup title="${users.size} players have this task">×${users.size}</sup>` : ''}
+            <div class="remaining-kills" title="Maximum kills required">${maxRemaining}</div>
           </div>
         `;
       }).join('');
     }
+
 
     function extractMonsterName(taskName) {
       return taskName.includes("Defeat") ? cleanTaskName(taskName).split('-')[1]?.trim() || null: null;
