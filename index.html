@@ -204,6 +204,10 @@
     function isCombatTask(task) {
       return /Z\d+/.test(task.name);
     }
+
+    function cleanTaskName(taskName){
+      return taskName.replace(/Z\d+/g, '').replace(/\s+/g, ' ').trim();
+    }
   
     function renderData(allData) {
       const container = document.getElementById('dashboard');
@@ -212,10 +216,12 @@
       const allCombatTasks = {};
 
       for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
+
+
         tasks.sort((a, b) => {
           const getZone = (task) => {
             if (task.name.startsWith("Defeat")) {
-              const monster = task.name.split("-")[1]?.trim();
+              const monster = cleanTaskName(task.name).split("-")[1]?.trim()
               return MONSTER_ZONES[monster] || Infinity;
             }
             return Infinity;
@@ -256,10 +262,10 @@
           let monsterName = null;
 
           if (task.name.startsWith("Defeat")) {
-            monsterName = task.name.split("-")[1]?.split(" Z")[0].trim();
+            monsterName = cleanTaskName(task.name).split("-")[1]?.trim()
             zone = MONSTER_ZONES[monsterName] || null;
           }
-          console.log(monsterName);
+
           if (zone !== null) {
             if (!allCombatTasks[zone]) {
               allCombatTasks[zone] = { users: new Set(), count: 0, monsters: {} };
