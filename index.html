@@ -39,7 +39,7 @@
 
     #dashboard {
       width: 100%;
-      max-width: 1500px;
+      max-width: 1500px; /* Bigger area to stretch cards */
       margin: 0 auto;
       padding: 0 16px;
       box-sizing: border-box;
@@ -49,7 +49,7 @@
     #card-wrapper {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-evenly; 
+      justify-content: space-evenly; /* <<< NEW! instead of center */
       gap: 24px;
       width: 100%;
     }
@@ -479,7 +479,9 @@
     }
 
     function cleanTaskName(taskName) {
-      return taskName.replace(/Z\\d+/g, '').replace(/\\s+/g, ' ').trim();
+      console.log(taskName);
+      console.log(taskName.replace(/Z\\d+/g, '').replace(/\\s+/g, ' ').trim());
+      return taskName.replace(/Z\d+/g, '').replace(/\s+/g, ' ').trim();
     }
 
     function getZoneFromTask(task) {
