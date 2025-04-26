@@ -71,41 +71,68 @@
     }
 
     .main-layout {
-      display: grid;
-      grid-template-columns: 1fr minmax(auto, 600px) 1fr;
-      gap: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
       margin-top: 24px;
     }
 
-
     .left-placeholder {
-      justify-self: end;
-      margin-right: 20px;
+      display: none;
     }
 
     #dashboard {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      align-items: center;
+      width: 100%;
+      margin: 0 auto;
     }
 
+
     .card {
-      width: 100%;
-      max-width: 500px;
-      margin: 0;
+      flex: 1 1 440px;
+      max-width: 600px;
+      min-width: 360px;
       padding: 16px;
+      box-sizing: border-box;
     }
+
 
     .zone-highlight {
       color: #ffa500;
       font-weight: bold;
     }
-
     #summary-section {
-      justify-self: start;
-      margin-left: 20px;
+      width: 100%;
+      max-width: 1000px;
+      padding: 0 16px;
+      box-sizing: border-box;
+      margin-bottom: 24px;
     }
+
+    #card-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 16px 32px;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 22px;
+      }
+      .refresh-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .task-name {
+        font-size: 14px;
+      }
+    }
+
 
 
   </style>
@@ -212,6 +239,9 @@
     function renderData(allData) {
       const container = document.getElementById('dashboard');
       container.innerHTML = '';
+
+      const cardWrapper = document.createElement('div');
+      cardWrapper.id = 'card-wrapper';
 
       const allCombatTasks = {};
 
@@ -327,12 +357,14 @@
           card.appendChild(tsEl);
         }
 
-        container.appendChild(card);
+        cardWrapper.appendChild(card);
       }
 
       const sharedZones = Object.entries(allCombatTasks)
         .filter(([_, val]) => val.users.size > 1)
         .sort((a, b) => b[1].count - a[1].count);
+
+      container.appendChild(cardWrapper);
 
       const heading = document.createElement('h2');
       heading.textContent = '🧠 Common Combat Tasks';
