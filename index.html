@@ -267,8 +267,8 @@
     // ====== Constants ======
     const SHARED_BIN_ID = "6809bdf78960c979a58be9d1";
     const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
+    const ALLOWED_USERS = ["Saquon", "ZyzzBraah", "Medusaz"];
     const COOLDOWN_MS = 30000;
-
     const MONSTER_ZONES = {
       "Fly":1,"Jerry":1,"Skunk":1,"Porcupine":1,"Slimy":1,
       "Frogger":2,"Thnake":2,"Swampy":2,"Sherlock":2,"Giant Shoebill":2,
@@ -342,8 +342,12 @@
     }
 
     function renderData(allData) {
-      // TODO: Insert your cleaned `renderData`, buildUserCards, buildSummaryTable, highlightCommonTasks
       console.log('Rendering data...', allData);
+    }
+    for (const username of Object.keys(allData)) {
+      if (!ALLOWED_USERS.includes(username)) {
+        delete allData[username];
+      }
     }
 
     function renderData(allData) {
@@ -448,7 +452,7 @@
           const lastUpdated = document.createElement('div');
           lastUpdated.className = 'last-updated';
           lastUpdated.textContent = `(Last updated: ${formatted})`;
-          name.appendChild(lastUpdated); // 👈 append directly to name
+          name.appendChild(lastUpdated);
         }
 
 
