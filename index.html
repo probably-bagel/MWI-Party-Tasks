@@ -127,6 +127,12 @@
     const SHARED_BIN_ID = "6809bdf78960c979a58be9d1";
     const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
   
+
+
+    const MONSTER_ZONES = {
+        "Fly":1,"Jerry":1,"Skunk":1,"Porcupine":1,"Slimy":1,"Frogger":2,"Thnake":2,"Swampy":2,"Sherlock":2,"Giant Shoebill":2,"Gary":3,"I Pinch":3,"Aquahorse":3,"Nom Nom":3,"Turuto":3,"Marine Huntress":3,"Jungle Sprite":4,"Myconid":4,"Treant":4,"Centaur Archer":4,"Luna Empress":4,"Stabby":5,"Slashy":5,"Smashy":5,"Shooty":5,"Boomy":5,"Gobo Chieftain":5,"Eye":6,"Eyes":6,"Veyes":6,"The Watcher":6,"Novice Sorcerer":7,"Ice Sorcerer":7,"Flame Sorcerer":7,"Elementalist":7,"Chronofrost Sorcerer":7,"Gummy Bear":8,"Panda":8,"Black Bear":8,"Grizzler Bear":8,"Polar Bear":8,"Red Panda":8,"Magnetic Golem":9,"Stalactite Golem":9,"Granite Golem":9,"Crystal Colossus":9,"Zombie":10,"Vampire":10,"WereWolf":10,"Dusk Revenant":10,"Abyssal Imp":11,"Soul Hunter":11,"Infernal Warlock":11,"Demonic Overlord":11
+    }
+
     async function fetchAllUserTasks() {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
         headers: { 'X-Master-Key': API_KEY }
@@ -207,16 +213,17 @@
 
       for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
         tasks.sort((a, b) => {
-          const aCombat = a.name.includes("Defeat");
-          const bCombat = b.name.includes("Defeat");
+          const getZone = (task) => {
+            if (task.name.startsWith("Defeat")) {
+              const monster = task.name.split("-")[1]?.trim();
+              return MONSTER_ZONES[monster] || Infinity;
+            }
+            return Infinity;
+          };
 
-          if (aCombat && bCombat) {
-            const zoneA = +(a.name.match(/Z(\d+)/)?.[1] || Infinity);
-            const zoneB = +(b.name.match(/Z(\d+)/)?.[1] || Infinity);
-            return zoneA - zoneB;
-          }
-          if (aCombat) return -1;
-          if (bCombat) return  1;
+          const zoneA = getZone(a);
+          const zoneB = getZone(b);
+          if (zoneA !== zoneB) return zoneA - zoneB;
           return a.name.localeCompare(b.name);
         });
 
@@ -245,18 +252,22 @@
         card.appendChild(headerRow);
 
         tasks.forEach(task => {
-          const zoneMatch = task.name.match(/Z(\d+)/);
-          if (zoneMatch) {
-            const zone = parseInt(zoneMatch[1], 10);
+          let zone = null;
+          let monsterName = null;
+
+          if (task.name.startsWith("Defeat")) {
+            monsterName = task.name.split("-")[1]?.split(" Z")[0].trim();
+            zone = MONSTER_ZONES[monsterName] || null;
+          }
+          console.log(monsterName);
+          if (zone !== null) {
             if (!allCombatTasks[zone]) {
               allCombatTasks[zone] = { users: new Set(), count: 0, monsters: {} };
             }
             allCombatTasks[zone].users.add(username);
             allCombatTasks[zone].count += 1;
 
-            const monsterMatch = task.name.match(/Defeat\s*-\s*(.*?)\s*Z\d+/);
-            if (monsterMatch) {
-              const monsterName = monsterMatch[1].trim();
+            if (monsterName) {
               allCombatTasks[zone].monsters[monsterName] = (allCombatTasks[zone].monsters[monsterName] || 0) + 1;
             }
           }
@@ -265,10 +276,10 @@
           taskEl.className = 'task';
 
           let iconName;
-          if (task.name.startsWith("Defeat")) {
-            iconName = task.name.split("-")[1].trim().split(" Z")[0].replace(" ","_"); 
+          if (monsterName) {
+            iconName = monsterName.replace(/ /g, "_");
           } else {
-            iconName = task.name.split('-')[0].trim();
+            iconName = task.name.split('-')[0]?.trim();
           }
 
           const iconEl = document.createElement('img');
@@ -278,11 +289,9 @@
 
           const label = document.createElement('span');
           label.className = 'task-name';
-          if (zoneMatch) {
-            const [zoneText] = zoneMatch;
-            const parts = task.name.split(zoneText);
-            
-            label.innerHTML = `${parts[0]}<span class="zone-highlight">${zoneText}</span>${parts[1] || ''}`;
+
+          if (zone !== null) {
+            label.innerHTML = `Defeat - ${monsterName} <span class="zone-highlight">Z${zone}</span>`;
           } else {
             label.textContent = task.name;
           }
@@ -341,14 +350,13 @@
       const tbody = table.querySelector('tbody');
       if (sharedZones.length > 0) {
         sharedZones.forEach(([zone, info]) => {
-          
           const monstersHTML = Object.entries(info.monsters).map(([monster, count]) => {
             const countTag = count > 1
               ? `<sup style="position: absolute; top: -6px; right: -6px; font-size: 10px; color: #ccc;">×${count}</sup>`
               : '';
             return `
               <div style="position: relative; display: inline-block; margin: 0 4px;">
-                <img src="icons/${monster.replace(" ","_")}.svg" alt="${monster}" title="${monster}" style="width: 20px; height: 20px;" />
+                <img src="icons/${monster.replace(/ /g, "_")}.svg" alt="${monster}" title="${monster}" style="width: 20px; height: 20px;" />
                 ${countTag}
               </div>
             `;
@@ -374,6 +382,7 @@
       summarySection.appendChild(heading);
       summarySection.appendChild(table);
     }
+
 
   </script>
   
