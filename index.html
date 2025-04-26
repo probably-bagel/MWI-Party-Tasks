@@ -405,16 +405,13 @@
       }
     }
 
-    function renderData(allData) {
-      console.log('Rendering data...', allData);
-    }
-    for (const username of Object.keys(allData)) {
-      if (!ALLOWED_USERS.includes(username)) {
-        delete allData[username];
-      }
-    }
+
 
     function renderData(allData) {
+      allData = Object.fromEntries(
+        Object.entries(allData).filter(([username]) => ALLOWED_USERS.includes(username))
+      );
+
       const dashboard = document.getElementById('dashboard');
       dashboard.innerHTML = '';
 
