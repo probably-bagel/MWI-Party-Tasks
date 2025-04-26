@@ -15,19 +15,37 @@
     }
 
     .header {
-      text-align: center;
-      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 32px;
     }
+    .header h1 {
+      font-size: 36px;
+      background: linear-gradient(to right, #ffa500, #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
 
     .refresh-btn {
       background-color: #4caf50;
-      border: none;
       color: white;
-      padding: 10px 16px;
-      font-size: 14px;
+      padding: 12px 24px;
+      font-size: 15px;
+      border-radius: 6px;
+      font-weight: bold;
       cursor: pointer;
-      border-radius: 4px;
-      margin-top: 10px;
+      transition: background-color 0.2s ease;
+      min-width: 140px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+    }
+
+
+    .refresh-btn:hover {
+      background-color: #45a047;
     }
 
     .main-layout {
@@ -39,7 +57,7 @@
 
     #dashboard {
       width: 100%;
-      max-width: 1500px; /* Bigger area to stretch cards */
+      max-width: 1500px; 
       margin: 0 auto;
       padding: 0 16px;
       box-sizing: border-box;
@@ -49,7 +67,7 @@
     #card-wrapper {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-evenly; /* <<< NEW! instead of center */
+      justify-content: space-evenly;
       gap: 24px;
       width: 100%;
     }
@@ -76,8 +94,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 0px;
     }
+
 
     .task {
       display: flex;
@@ -114,10 +135,13 @@
     }
 
     .last-updated {
-      font-size: 12px;
-      color: #aaa;
-      margin-top: 10px;
+      font-size: 11px;
+      font-weight: normal;
+      color: #888;
+      margin-top: 4px;
+      display: block;
     }
+
 
     /* ====== Summary Table Styles ====== */
     table {
@@ -131,6 +155,14 @@
       padding: 8px 12px;
       text-align: center;
       border-bottom: 1px solid #555;
+    }
+    .emoji-glow {
+      animation: glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 0px #ffa500); }
+      to   { filter: drop-shadow(0 0 4px #ffa500); }
     }
 
     .monster-cell {
@@ -156,9 +188,10 @@
     }
 
     .remaining-kills {
-      font-size: 9px;
-      color: #aaa;
-      margin-top: 2px;
+      font-size: 11px; 
+      color: #ccc;    
+      margin-top: 3px; 
+      font-weight: 500;
     }
     .summary-table {
       width: 100%;
@@ -185,6 +218,11 @@
       margin-top: 20px;
       margin-bottom: 12px;
     }
+
+    #summary-section td:first-child {
+      vertical-align: middle;
+    }
+
     /* ====== Cooldown Alert ====== */
     .cooldown-alert {
       position: fixed;
@@ -212,10 +250,12 @@
 
 <body>
   <div class="header">
-    <h1>MWI Party Tasks</h1>
-    <button id="refreshButton" class="refresh-btn">🔄 Refresh</button>
+    <h1>Milky Way Idle - Party Tasks</h1>
+    <button class="refresh-btn">
+      ↻ Refresh
+    </button>    
   </div>
-
+  
   <div class="main-layout">
     <div id="dashboard"></div>
     <div id="summary-section"></div>
@@ -248,7 +288,7 @@
 
     // ====== Event Listeners ======
     document.addEventListener("DOMContentLoaded", loadCachedData);
-    document.getElementById('refreshButton').addEventListener('click', safeRefreshData);
+    document.querySelector('.refresh-btn').addEventListener('click', safeRefreshData);
 
     // ====== Core Functions ======
     async function safeRefreshData() {
@@ -275,10 +315,11 @@
 
     function showCooldownMessage(secondsLeft) {
       const alertBox = document.getElementById('cooldownAlert');
-      alertBox.textContent = `Cooldown: ${secondsLeft} sec${secondsLeft !== 1 ? 's' : ''} remaining`;
+      alertBox.textContent = `Stop spamming ho. Try again in ${secondsLeft} sec${secondsLeft !== 1 ? 's' : ''}.`;
       alertBox.classList.add('show');
       setTimeout(() => alertBox.classList.remove('show'), 4000);
     }
+
 
     async function fetchAllUserTasks() {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
@@ -403,11 +444,13 @@
             minute: '2-digit',
             hour12: true
           });
-          const tsEl = document.createElement('div');
-          tsEl.className = 'last-updated';
-          tsEl.textContent = `(Last updated: ${formatted})`;
-          card.appendChild(tsEl);
+
+          const lastUpdated = document.createElement('div');
+          lastUpdated.className = 'last-updated';
+          lastUpdated.textContent = `(Last updated: ${formatted})`;
+          name.appendChild(lastUpdated); // 👈 append directly to name
         }
+
 
         cardWrapper.appendChild(card);
       }
@@ -427,7 +470,7 @@
     function buildSummaryTable(allData, sharedZones) {
       const summary = document.getElementById('summary-section');
       summary.innerHTML = `
-        <h2>🧠 Common Combat Tasks</h2>
+      <h2><span class="emoji-glow">🧠</span> Common Combat Tasks</h2>
         <table class="summary-table">
           <thead>
             <tr>
