@@ -376,9 +376,13 @@
     let selectedParty = JSON.parse(localStorage.getItem('MWI_SelectedPartySlots') || '["", "", ""]');
     let currentPartyName = localStorage.getItem('MWI_CurrentPartyName') || '';
 
-    // ====== Event Listeners ======
-    document.addEventListener("DOMContentLoaded", loadCachedData);
-    updateCurrentPartyName();
+    document.addEventListener("DOMContentLoaded", () => {
+      loadCachedData();
+      if (!localStorage.getItem("MWI_LastDashboardData")) {
+        safeRefreshData();
+      }
+      updateCurrentPartyName();
+    });
 
     // ====== Core Functions ======
     async function safeRefreshData() {
@@ -1008,6 +1012,7 @@
       <!-- Dynamic content will go here -->
     </div>
   </div>
+  
 
 </body>
 </html>
