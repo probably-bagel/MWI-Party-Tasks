@@ -384,7 +384,7 @@
     async function safeRefreshData() {
       const now = Date.now();
       if (now < cooldownEndsAt) {
-        showCooldownMessage(Math.ceil((cooldownEndsAt - now) / 1000));
+        //showCooldownMessage(Math.ceil((cooldownEndsAt - now) / 1000));
         return;
       }
 
