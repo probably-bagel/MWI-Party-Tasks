@@ -10,10 +10,10 @@ The site to view all users tasks (currently only supports Saquon, ZyzzBraah, and
 
 
 ### Installation Instructions:
-1. Open the [MWI Task Sync.js](https://github.com/probably-bagel/MWI-Party-Tasks/blob/main/MWI%20Task%20Sync.js) file.
+1. Open the [MWI Task Sync.js](https://raw.githubusercontent.com/probably-bagel/MWI-Party-Tasks/refs/heads/main/MWI%20Task%20Sync.js) file.
 2. Copy all of the contents of the file
 
-![image](https://github.com/user-attachments/assets/31381242-c50c-438f-8a32-45fd5441c360)
+![image](https://github.com/user-attachments/assets/a7c1911a-0fb2-40aa-95b0-8e4a0244ac7a)
 
 4. Open Milky Way Idle in Chrome
 5. Click on the Plugin icon next to the address bar and click on "Tampermonkey".
@@ -39,7 +39,17 @@ The site to view all users tasks (currently only supports Saquon, ZyzzBraah, and
 
 
 ### Update Instructions:
-1. Navigate here
+
+1. Copy the script here: [MWI Task Sync.js](https://raw.githubusercontent.com/probably-bagel/MWI-Party-Tasks/refs/heads/main/MWI%20Task%20Sync.js)
+
+![image](https://github.com/user-attachments/assets/bf5b44af-9711-4428-ba04-84a4d673a7ad)
+
+2. Navigate to Tampermonkey. Easiest way is through the "Extensions" tab on Chrome, or by clicking the Tampermonkey next to the address bar. Then, find the script and click Edit.
    
    ![image](https://github.com/user-attachments/assets/0ad9b7e8-c7ec-43c4-938c-3e9158dd567b)
-2.  Follow steps 1, 2, 7, and 8 in the Installation Instructions.
+
+3. Replace all of the text with the contents you copied in step 2, then save (CTRL + S).
+
+![image](https://github.com/user-attachments/assets/5ba92c1a-d394-45f1-810e-ca5326d3f590)
+  
+4. Save. Then refresh your Milky Way Idle session and you should be all set. 
