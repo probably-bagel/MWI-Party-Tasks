@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MWI Task Sync (Firebase Version)
 // @namespace    http://tampermonkey.net/
-// @version      2.11
+// @version      2.2
 // @description  Upload Milky Way Idle task data to Firebase Realtime Database
 // @match        https://*.milkywayidle.com/*
 // @updateURL    https://raw.githubusercontent.com/probably-bagel/MWI-Party-Tasks/refs/heads/main/MWI%20Task%20Sync.js
