@@ -66,6 +66,7 @@
       flex-direction: column;
       align-items: center;
       width: 100%;
+      padding-bottom: 200px;
     }
 
     #dashboard {
@@ -81,6 +82,7 @@
       color: white;
       border: none;
       padding: 14px 28px;
+      margin-bottom: 10px;
       font-size: 16px;
       font-weight: bold;
       border-radius: 50px;
@@ -109,6 +111,8 @@
       min-width: 320px;
       max-width: 480px;
       min-height: 450px;
+      position: relative;
+
       box-sizing: border-box;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -580,6 +584,7 @@
       const presets = JSON.parse(localStorage.getItem('MWI_PartyPresets') || '{}');
 
       if (Object.keys(presets).length === 0) {
+        closeModal();
         showCooldownToast('No saved party presets.');
         return;
       }
@@ -844,89 +849,122 @@
 
     function openPlayerSelector(slotIndex) {
       const dashboard = document.getElementById('card-wrapper');
-      const card = dashboard.children[slotIndex];
+      const card      = dashboard.children[slotIndex];
 
       // Remove old selector if any
       const old = card.querySelector('.player-selector');
       if (old) old.remove();
 
+      // Build selector container
       const selector = document.createElement('div');
       selector.className = 'player-selector';
-      selector.tabIndex = 0;
-      selector.style.position = 'absolute';
-      selector.style.top = '50px';
-      selector.style.left = '50%';
-      selector.style.transform = 'translateX(-50%)';
-      selector.style.background = '#222';
-      selector.style.border = '1px solid #555';
-      selector.style.borderRadius = '6px';
-      selector.style.padding = '10px';
-      selector.style.zIndex = '999';
-      selector.style.display = 'flex';
-      selector.style.flexDirection = 'column';
-      selector.style.gap = '6px';
-      selector.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
-      selector.style.cursor = 'pointer';
+      selector.tabIndex   = 0;
+      Object.assign(selector.style, {
+        position: 'absolute',
+        top: '50px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: '#222',
+        border: '1px solid #555',
+        borderRadius: '6px',
+        padding: '10px',
+        zIndex: '999',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+        cursor: 'pointer',
+        width: '200px'
+      });
 
-      const availableUsers = Object.keys(allData);
-      const alreadySelected = new Set(selectedParty.filter((u, idx) => idx !== slotIndex && u));
+      // 1) Search input
+      const searchInput = document.createElement('input');
+      Object.assign(searchInput, {
+        type: 'text',
+        placeholder: 'Filter players…'
+      });
+      Object.assign(searchInput.style, {
+        padding: '6px',
+        borderRadius: '4px',
+        border: '1px solid #555',
+        background: '#333',
+        color: '#fff'
+      });
+      selector.appendChild(searchInput);
 
-      // "None" option
-      const noneOption = document.createElement('div');
-      noneOption.textContent = 'None';
-      noneOption.style.padding = '6px';
-      noneOption.style.borderRadius = '4px';
-      noneOption.style.cursor = 'pointer';
-      noneOption.onmouseenter = () => noneOption.style.background = '#444';
-      noneOption.onmouseleave = () => noneOption.style.background = 'transparent';
-      noneOption.onclick = (e) => {
-        e.stopPropagation();
+      // 2) Build option renderer
+      const renderOption = (text, onclick) => {
+        const opt = document.createElement('div');
+        opt.className = 'option-item';
+        opt.textContent = text;
+        Object.assign(opt.style, {
+          padding: '6px',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        });
+        opt.onmouseenter = () => opt.style.background = '#444';
+        opt.onmouseleave = () => opt.style.background = 'transparent';
+        opt.onclick = e => {
+          e.stopPropagation();
+          onclick();
+        };
+        return opt;
+      };
+
+      // "None" first
+      const noneOption = renderOption('None', () => {
         selectedParty[slotIndex] = null;
         localStorage.setItem('MWI_SelectedPartySlots', JSON.stringify(selectedParty));
         renderData(allData);
-        updateCurrentPartyName(); // 🔥 Refresh dirty status
-      };
+        updateCurrentPartyName();
+      });
       selector.appendChild(noneOption);
 
+      // Then each user
+      const alreadySelected = new Set(selectedParty.filter((u, idx) => idx !== slotIndex && u));
+      const availableUsers = Object.keys(allData)
+        .filter(user => !alreadySelected.has(user))
+        .sort((a, b) => a.localeCompare(b));      
       availableUsers.forEach(user => {
         if (alreadySelected.has(user)) return;
-
-        const option = document.createElement('div');
-        option.textContent = user;
-        option.style.padding = '6px';
-        option.style.borderRadius = '4px';
-        option.style.cursor = 'pointer';
-
-        option.onmouseenter = () => option.style.background = '#444';
-        option.onmouseleave = () => option.style.background = 'transparent';
-
-        option.onclick = (e) => {
-          e.stopPropagation();
+        const opt = renderOption(user, () => {
           selectedParty[slotIndex] = user;
           localStorage.setItem('MWI_SelectedPartySlots', JSON.stringify(selectedParty));
-          renderData(allData); // 🔥 Redraw with correct selection
-          updateCurrentPartyName(); // 🔥 Refresh dirty status
-        };
-
-        selector.appendChild(option);
+          renderData(allData);
+          updateCurrentPartyName();
+        });
+        selector.appendChild(opt);
       });
 
       card.appendChild(selector);
-      selector.focus();
+      searchInput.focus();
 
-      selector.addEventListener('blur', () => {
-        selector.remove();
+      // 3) Filter logic
+      searchInput.addEventListener('input', () => {
+        const filter = searchInput.value.toLowerCase();
+        selector.querySelectorAll('.option-item').forEach(opt => {
+          opt.style.display = opt.textContent.toLowerCase().includes(filter)
+            ? ''
+            : 'none';
+        });
       });
 
+      // 4) Tear-down handlers
       setTimeout(() => {
-        document.addEventListener('click', function handler(event) {
-          if (!selector.contains(event.target)) {
+        document.addEventListener('click', function handler(e) {
+          if (!selector.contains(e.target)) {
             selector.remove();
             document.removeEventListener('click', handler);
           }
         });
       }, 50);
+
+      card.addEventListener('mouseleave', function onLeave() {
+        selector.remove();
+        card.removeEventListener('mouseleave', onLeave);
+      });
     }
+
 
 
 
