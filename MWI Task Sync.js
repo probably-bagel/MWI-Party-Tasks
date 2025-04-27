@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MWI Task Sync (Firebase Version)
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.1
 // @description  Upload Milky Way Idle task data to Firebase Realtime Database
 // @match        https://*.milkywayidle.com/*
 // @updateURL    https://raw.githubusercontent.com/probably-bagel/MWI-Party-Tasks/refs/heads/main/MWI%20Task%20Sync.js
@@ -15,7 +15,7 @@
   'use strict';
 
   const DATABASE_URL = 'https://milky-way-idle-party-tools-default-rtdb.firebaseio.com';
-  const MANUAL_UPLOAD_INTERVAL_MS = 3000;
+  const MANUAL_UPLOAD_INTERVAL_MS = 1000;
 
   const SELECTORS = {
     username: '[data-name]',
@@ -135,7 +135,7 @@
 
       if (now - last < MANUAL_UPLOAD_INTERVAL_MS) {
         const secondsLeft = Math.ceil((MANUAL_UPLOAD_INTERVAL_MS - (now - last)) / 1000);
-        alert(`⛔ Slow down! Try again in ${secondsLeft}s.`);
+        //alert(`⛔ Slow down! Try again in ${secondsLeft}s.`);
         return;
       }
 
