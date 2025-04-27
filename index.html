@@ -18,10 +18,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 0px;
+      margin-top: 15px;
     }
     .header h1 {
-      font-size: 36px;
+      font-size: 50px;
       background: linear-gradient(to right, #ffa500, #00d4ff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -38,6 +38,7 @@
     }
     .page-title {
       text-align: center;
+
     }
 
     .refresh-btn {
@@ -65,23 +66,17 @@
       flex-direction: column;
       align-items: center;
       width: 100%;
-      padding-bottom: 100px;
     }
 
     #dashboard {
       width: 100%;
       max-width: 1500px; 
       margin: 0 auto;
-      margin-top: 12px;
+      margin-top: 40px;
       padding: 0 16px;
       box-sizing: border-box;
     }
-
-    .fixed-refresh {
-      position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
+    .footer-button {
       background-color: #4caf50;
       color: white;
       border: none;
@@ -92,13 +87,10 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       cursor: pointer;
       transition: background-color 0.2s ease;
-      z-index: 1000;
     }
-
-    .fixed-refresh:hover {
-      background-color: #45a047;
+    .footer-button:hover {
+      background-color: #45a049;
     }
-
     /* ====== Card Styles ====== */
     #card-wrapper {
       display: flex;
@@ -116,6 +108,7 @@
       flex: 0 1 30%;
       min-width: 320px;
       max-width: 480px;
+      min-height: 450px;
       box-sizing: border-box;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -270,6 +263,7 @@
       padding: 20px;
       max-width: 1200px; /* 🔥 match card area */
       margin-bottom: 12px;
+      margin-top: 60px;
       box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
     }
 
@@ -289,7 +283,7 @@
     /* ====== Cooldown Alert ====== */
     .cooldown-alert {
       position: fixed;
-      top: 30px;
+      bottom: 100px;
       left: 50%;
       transform: translateX(-50%);
       background-color: #333;
@@ -309,30 +303,59 @@
       pointer-events: auto;
     }
   </style>
-</head>
+<script type="text/javascript" nonce="680cacfe71cc4ef1a7d0a9d42e1" src="//local.adguard.org?ts=1745714741461&amp;type=content-script&amp;dmn=files09.oaiusercontent.com&amp;url=https%3A%2F%2Ffiles09.oaiusercontent.com%2Ffile-CYykeYxTLC5eidbPp8Woop%3Fse%3D2025-04-27T06%253A09%253A36Z%26sp%3Dr%26sv%3D2024-08-04%26sr%3Db%26rscc%3Dmax-age%253D299%252C%2520immutable%252C%2520private%26rscd%3Dattachment%253B%2520filename%253Dindex.html%26sig%3DAwy7ikwo4SWz%252BRYLb%2FKlQ0daQljPk95j8KNmwcLjqCg%253D&amp;app=chrome.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script>
+<script type="text/javascript" nonce="680cacfe71cc4ef1a7d0a9d42e1" src="//local.adguard.org?ts=1745714741461&amp;name=AdGuard%20Assistant&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
 
 <body>
   <div class="header">
+
     <h1 class="page-title">
       Milky Way Idle <span class="hide-desktop"><br></span> Party Tasks
     </h1>
+
   </div>
   
   <div class="main-layout">
-    <div id="summary-section"></div>
+   
     <div id="dashboard"></div>
-  <button class="fixed-refresh">↻ Refresh</button>
+    <div id="summary-section"></div>
 
+
+    <div id="footer-button-group" style="
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    ">
+      <div id="current-party" style="
+        color: #ccc;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+      "></div>
+    
+      <div style="display: flex; gap: 50px;">
+        <button class="footer-button" onclick="savePartyPreset()">💾 Save Party</button>
+        <button class="footer-button" onclick="safeRefreshData()">↻ Refresh</button>
+        <button class="footer-button" onclick="loadPartyPreset()">📂 Load Party</button>
+      </div>
+    </div>
+    
+    
+  
   </div>
 
   <div id="cooldownAlert" class="cooldown-alert"></div>
-
+  
   <script>
     // ====== Constants ======
-    const SHARED_BIN_ID = "6809bdf78960c979a58be9d1";
-    const API_KEY = "$2a$10$BuzVhO.zxHogPcYrZbMjfu4Mj3hDMuBjKBaFQSt2lGj7zS0bDmXny";
-    const ALLOWED_USERS = ["Saquon", "ZyzzBraah", "Medusaz"];
-    const COOLDOWN_MS = 30000;
+    const COOLDOWN_MS = 10000;
     const MONSTER_ZONES = {
       "Fly":1,"Jerry":1,"Skunk":1,"Porcupine":1,"Slimy":1,
       "Frogger":2,"Thnake":2,"Swampy":2,"Sherlock":2,"Giant Shoebill":2,
@@ -349,10 +372,13 @@
 
     let isCoolingDown = false;
     let cooldownEndsAt = parseInt(localStorage.getItem('MWI_CooldownEndsAt')) || 0;
+    let allData = {}; 
+    let selectedParty = JSON.parse(localStorage.getItem('MWI_SelectedPartySlots') || '["", "", ""]');
+    let currentPartyName = localStorage.getItem('MWI_CurrentPartyName') || '';
 
     // ====== Event Listeners ======
     document.addEventListener("DOMContentLoaded", loadCachedData);
-    document.querySelector('.fixed-refresh').addEventListener('click', safeRefreshData);
+    updateCurrentPartyName();
 
     // ====== Core Functions ======
     async function safeRefreshData() {
@@ -367,15 +393,81 @@
         cooldownEndsAt = now + COOLDOWN_MS;
         localStorage.setItem('MWI_CooldownEndsAt', cooldownEndsAt.toString());
 
-        const allData = await fetchAllUserTasks();
+        allData = await fetchAllUserTasks();
+
         localStorage.setItem('MWI_LastDashboardData', JSON.stringify(allData));
         renderData(allData);
+
       } catch (error) {
         console.error("[MWI] Failed to refresh data:", error);
       } finally {
         setTimeout(() => { isCoolingDown = false; }, COOLDOWN_MS);
       }
     }
+    function openModal(innerHTML) {
+      const overlay = document.getElementById('modal-overlay');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = innerHTML;
+      overlay.style.display = 'flex';
+
+      overlay.onclick = function(e) {
+        if (e.target === overlay) {
+          closeModal();
+        }
+      };
+    }
+
+    function closeModal() {
+      const overlay = document.getElementById('modal-overlay');
+      overlay.style.display = 'none';
+    }
+
+    function getSelectedParty() {
+      return JSON.parse(localStorage.getItem('MWI_SelectedPartySlots') || '["", "", ""]');
+    }
+
+    function setSelectedParty(slots) {
+      localStorage.setItem('MWI_SelectedPartySlots', JSON.stringify(slots));
+    }
+    function selectPartyPreset(name) {
+      const presets = JSON.parse(localStorage.getItem('MWI_PartyPresets') || '{}');
+      if (presets[name]) {
+        selectedParty = [...presets[name]];
+        localStorage.setItem('MWI_SelectedPartySlots', JSON.stringify(selectedParty));
+        localStorage.setItem('MWI_CurrentPartyName', name); // 🔥 Store current party name
+        renderData(allData);
+        updateCurrentPartyName(); // 🔥 Update the visual text
+        closeModal();
+      }
+    }
+    function updateCurrentPartyName() {
+      const currentPartyName = localStorage.getItem('MWI_CurrentPartyName');
+      const currentPartyDiv = document.getElementById('current-party');
+
+      if (!currentPartyName) {
+        currentPartyDiv.textContent = '';
+        return;
+      }
+
+      const presets = JSON.parse(localStorage.getItem('MWI_PartyPresets') || '{}');
+      const savedParty = presets[currentPartyName];
+
+      let dirtyMarker = '';
+
+      if (savedParty) {
+        const cleanSaved = savedParty.map(x => x || '');
+        const cleanSelected = selectedParty.map(x => x || '');
+
+        const isDirty = JSON.stringify(cleanSaved) !== JSON.stringify(cleanSelected);
+
+        if (isDirty) {
+          dirtyMarker = ' *'; // 🔥 Add * if unsaved changes
+        }
+      }
+
+      currentPartyDiv.textContent = `Currently Loaded Party: ${currentPartyName}${dirtyMarker}`;
+    }
+
 
     function showCooldownMessage(secondsLeft) {
       const alertBox = document.getElementById('cooldownAlert');
@@ -383,21 +475,190 @@
       alertBox.classList.add('show');
       setTimeout(() => alertBox.classList.remove('show'), 4000);
     }
+    function showCooldownToast(message) {
+      const alertBox = document.getElementById('cooldownAlert');
+      alertBox.textContent = message;
+      alertBox.classList.add('show');
+
+      setTimeout(() => {
+        alertBox.classList.remove('show');
+      }, 2000); // Show toast for 2 seconds
+    }
+   
+    function savePartyPreset() {
+      let modalContent = `
+        <h2 style="margin-bottom: 15px;">Save Party</h2>
+        <input id="presetNameInput" placeholder="Enter party name..." value="${currentPartyName}" style="
+          width: 100%;
+          max-width: 300px;
+          padding: 10px;
+          margin-bottom: 20px;
+          background-color: #333;
+          color: white;
+          border: 1px solid #555;
+          border-radius: 6px;
+          font-size: 16px;
+          box-sizing: border-box;
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+        ">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-refresh" onclick="confirmSaveParty()" style="
+          width: 100%;
+          padding: 10px 0;
+          background-color: #4caf50;
+          border-radius: 8px;
+          font-weight: bold;
+          font-size: 16px;
+          color: white;
+          margin-top: 10px;
+          cursor: pointer;
+        ">
+          💾 Save
+        </button>
+
+        <button class="btn-refresh" onclick="closeModal()" style="
+          width: 100%;
+          padding: 10px 0;
+          background-color: #4caf50;
+          border-radius: 8px;
+          font-weight: bold;
+          font-size: 16px;
+          color: white;
+          margin-top: 0px;
+          cursor: pointer;
+        ">
+          Cancel
+        </button>
+        </div>
+      `;
+      openModal(modalContent);
+    }
+
+
+
+
+    function confirmSaveParty() {
+      const name = document.getElementById('presetNameInput').value.trim();
+      if (!name) return;
+
+      const presets = JSON.parse(localStorage.getItem('MWI_PartyPresets') || '{}');
+      presets[name] = [...selectedParty];
+
+      localStorage.setItem('MWI_PartyPresets', JSON.stringify(presets));
+      localStorage.setItem('MWI_CurrentPartyName', name);
+      currentPartyName = name; // 🔥 update in memory too
+
+      updateCurrentPartyName();
+      showCooldownToast(`Party "${name}" saved!`);
+      closeModal();
+    }
+    function deletePartyPreset(name) {
+      const presets = JSON.parse(localStorage.getItem('MWI_PartyPresets') || '{}');
+      if (presets[name]) {
+        delete presets[name];
+        localStorage.setItem('MWI_PartyPresets', JSON.stringify(presets));
+
+        // If user deletes the currently loaded party, clear it
+        if (localStorage.getItem('MWI_CurrentPartyName') === name) {
+          localStorage.removeItem('MWI_CurrentPartyName');
+          currentPartyName = '';
+          updateCurrentPartyName();
+        }
+
+        showCooldownToast(`Deleted "${name}"`);
+        loadPartyPreset(); // 🔥 Reload the list cleanly
+      }
+    }
+
+    function loadPartyPreset() {
+      const presets = JSON.parse(localStorage.getItem('MWI_PartyPresets') || '{}');
+
+      if (Object.keys(presets).length === 0) {
+        showCooldownToast('No saved party presets.');
+        return;
+      }
+
+      let modalContent = `
+        <h2 style="margin-bottom: 15px;">Load Party</h2>
+        <div id="party-button-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+      `;
+
+      Object.entries(presets).forEach(([partyName, members]) => {
+        modalContent += `
+          <div style="display: flex; align-items: center; justify-content: space-between; background-color: #333; padding: 10px 15px; border: 1px solid #555; border-radius: 8px;">
+            <button class="btn-party" data-party-name="${partyName}" style="
+              background: none;
+              border: none;
+              color: white;
+              text-align: left;
+              font-size: 16px;
+              cursor: pointer;
+              flex-grow: 1;
+            ">
+              <div style="font-weight: bold; margin-bottom: 4px;">${partyName}</div>
+              <div style="font-size: 14px; color: #aaa;">${members.filter(x => x).join(", ")}</div>
+            </button>
+            <button class="btn-delete" data-party-name="${partyName}" style="
+              background: none;
+              border: none;
+              color: #ff4c4c;
+              font-size: 20px;
+              cursor: pointer;
+              margin-left: 10px;
+            ">❌</button>
+          </div>
+        `;
+      });
+
+      modalContent += `
+        </div>
+        <button class="btn-refresh" style="
+          width: 100%; 
+          padding: 10px 0; 
+          background-color: #4caf50; 
+          border-radius: 8px; 
+          font-weight: bold; 
+          font-size: 16px; 
+          color: white; 
+          margin-top: 10px;
+          cursor: pointer;
+        " onclick="closeModal()">Cancel</button>
+      `;
+
+      openModal(modalContent);
+
+      // Setup click events
+      document.querySelectorAll('.btn-party').forEach(button => {
+        const partyName = button.getAttribute('data-party-name');
+        button.onclick = () => selectPartyPreset(partyName);
+      });
+
+      document.querySelectorAll('.btn-delete').forEach(button => {
+        const partyName = button.getAttribute('data-party-name');
+        button.onclick = (e) => {
+          e.stopPropagation();
+          deletePartyPreset(partyName);
+        };
+      });
+    }
+
 
 
     async function fetchAllUserTasks() {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${SHARED_BIN_ID}/latest`, {
-        headers: { 'X-Master-Key': API_KEY }
-      });
-      if (!res.ok) throw new Error("Failed to fetch tasks");
+      const res = await fetch(`https://milky-way-idle-party-tools-default-rtdb.firebaseio.com/party-tasks.json`);
+      if (!res.ok) throw new Error("Failed to fetch tasks from Firebase");
       const data = await res.json();
-      return data.record || {};
+      return data || {};
     }
+
 
     function loadCachedData() {
       const cached = localStorage.getItem("MWI_LastDashboardData");
       if (cached) {
         try {
+          allData=JSON.parse(cached);
           renderData(JSON.parse(cached));
         } catch (err) {
           console.warn("[MWI] Failed to load cached dashboard data:", err);
@@ -408,17 +669,20 @@
 
 
     function renderData(allData) {
-      allData = Object.fromEntries(
-        Object.entries(allData).filter(([username]) => ALLOWED_USERS.includes(username))
-      );
-
       const dashboard = document.getElementById('dashboard');
       dashboard.innerHTML = '';
 
       const cardWrapper = buildUserCards(allData);
       dashboard.appendChild(cardWrapper);
 
-      const allCombatTasks = gatherCombatTasks(allData);
+      const filteredData = {};
+      selectedParty.forEach(user => {
+        if (user && allData[user]) {
+          filteredData[user] = allData[user];
+        }
+      });
+
+      const allCombatTasks = gatherCombatTasks(filteredData);
       const sharedZones = Object.entries(allCombatTasks)
         .filter(([_, value]) => value.users.size > 1)
         .sort((a, b) => b[1].count - a[1].count);
@@ -426,8 +690,9 @@
       const commonZones = new Set(sharedZones.map(([zone]) => parseInt(zone)));
 
       highlightCommonTasks(commonZones);
-      buildSummaryTable(allData, sharedZones);
+      buildSummaryTable(filteredData, sharedZones);
     }
+
 
     function gatherCombatTasks(allData) {
       const combatTasks = {};
@@ -457,71 +722,209 @@
       const cardWrapper = document.createElement('div');
       cardWrapper.id = 'card-wrapper';
 
-      for (const [username, { tasks = [], slots = null, timestamp = null }] of Object.entries(allData)) {
+      const cardsToShow = 3;
+
+      for (let i = 0; i < cardsToShow; i++) {
+        const playerName = selectedParty[i];
+        const userData = playerName && allData[playerName] ? allData[playerName] : null;
+
         const card = document.createElement('div');
         card.className = 'card';
 
-        const header = document.createElement('div');
-        header.className = 'card-header';
+        if (userData) {
+          const { tasks = [], slots = null, timestamp = null } = userData;
+          // 🔥 Build real player card (your old logic)
+          // Build header, tasks, updated date etc. like before
+          const header = document.createElement('div');
+          header.className = 'card-header';
 
-        const name = document.createElement('h2');
-        name.textContent = username;
+          const nameWrapper = document.createElement('div');
+          nameWrapper.style.display = 'flex';
+          nameWrapper.style.alignItems = 'center';
+          nameWrapper.style.gap = '6px';
+          nameWrapper.style.cursor = 'pointer';
+          nameWrapper.style.userSelect = 'none';
+          nameWrapper.dataset.index = i;
 
-        const slotInfo = document.createElement('div');
-        slotInfo.textContent = slots ? `${slots.current} / ${slots.max} Tasks` : '';
+          const name = document.createElement('h2');
+          name.textContent = playerName;
 
-        header.appendChild(name);
-        header.appendChild(slotInfo);
-        card.appendChild(header);
+          const arrow = document.createElement('span');
+          arrow.textContent = '▼';
+          arrow.style.fontSize = '16px';
 
-        tasks.sort((a, b) => (getZoneFromTask(b) || 0) - (getZoneFromTask(a) || 0));
+          nameWrapper.appendChild(name);
+          nameWrapper.appendChild(arrow);
+          header.appendChild(nameWrapper);
 
-        tasks.forEach(task => {
-          const taskEl = document.createElement('div');
-          taskEl.className = 'task';
+          const slotInfo = document.createElement('div');
+          slotInfo.textContent = slots ? `${slots.current} / ${slots.max} Tasks` : '';
 
-          const monsterName = extractMonsterName(task.name);
-          const zone = getZoneFromTask(task);
+          header.appendChild(slotInfo);
+          card.appendChild(header);
 
-          const icon = document.createElement('img');
-          icon.className = 'task-icon';
-          icon.src = monsterName ? `icons/${monsterName.replace(/ /g, "_")}.svg` : `icons/${task.name.split("-")[0].trim()}.svg`;
-          icon.alt = monsterName || task.name;
+          nameWrapper.onclick = (e) => {
+            e.stopPropagation();
+            openPlayerSelector(i);
+          };
 
-          const label = document.createElement('span');
-          label.className = 'task-name';
-          label.innerHTML = zone !== null ? `Defeat - ${monsterName} <span class="zone-highlight">Z${zone}</span>` : task.name;
+          tasks.sort((a, b) => (getZoneFromTask(b) || 0) - (getZoneFromTask(a) || 0));
 
-          const progress = document.createElement('span');
-          progress.className = 'task-progress';
-          progress.textContent = `${task.progress} / ${task.total}`;
+          tasks.forEach(task => {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'task';
 
-          taskEl.append(icon, label, progress);
-          card.appendChild(taskEl);
-        });
+            const monsterName = extractMonsterName(task.name);
+            const zone = getZoneFromTask(task);
 
-        if (timestamp) {
-          const formatted = new Date(timestamp).toLocaleString('en-US', {
-            timeZone: 'America/New_York',
-            month: '2-digit',
-            day: '2-digit',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
+            const icon = document.createElement('img');
+            icon.className = 'task-icon';
+            icon.src = monsterName ? `icons/${monsterName.replace(/ /g, "_")}.svg` : `icons/${task.name.split("-")[0].trim()}.svg`;
+            icon.alt = monsterName || task.name;
+
+            const label = document.createElement('span');
+            label.className = 'task-name';
+            label.innerHTML = zone !== null ? `Defeat - ${monsterName} <span class="zone-highlight">Z${zone}</span>` : task.name;
+
+            const progress = document.createElement('span');
+            progress.className = 'task-progress';
+            progress.textContent = `${task.progress} / ${task.total}`;
+
+            taskEl.append(icon, label, progress);
+            card.appendChild(taskEl);
           });
 
-          const lastUpdated = document.createElement('div');
-          lastUpdated.className = 'last-updated';
-          lastUpdated.textContent = `(Last updated: ${formatted})`;
-          name.appendChild(lastUpdated);
-        }
+          if (timestamp) {
+            const formatted = new Date(timestamp).toLocaleString('en-US', {
+              timeZone: 'America/New_York',
+              month: '2-digit',
+              day: '2-digit',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
 
+            const lastUpdated = document.createElement('div');
+            lastUpdated.className = 'last-updated';
+            lastUpdated.textContent = `(Last updated: ${formatted})`;
+            name.appendChild(lastUpdated);
+          }
+
+        } else {
+          // 🔥 Empty slot: "+ Select Player" placeholder
+          const placeholder = document.createElement('div');
+          placeholder.style.display = "flex";
+          placeholder.style.flexDirection = "column";
+          placeholder.style.alignItems = "center";
+          placeholder.style.justifyContent = "center";
+          placeholder.style.height = "100%";
+          placeholder.style.fontSize = "24px";
+          placeholder.style.color = "#555";
+          placeholder.style.cursor = "pointer";
+          placeholder.innerHTML = "＋ Select Player";
+
+          placeholder.onclick = (e) => {
+            e.stopPropagation();
+            openPlayerSelector(i);
+          };
+
+          card.appendChild(placeholder);
+        }
 
         cardWrapper.appendChild(card);
       }
 
       return cardWrapper;
     }
+
+
+    function openPlayerSelector(slotIndex) {
+      const dashboard = document.getElementById('card-wrapper');
+      const card = dashboard.children[slotIndex];
+
+      // Remove old selector if any
+      const old = card.querySelector('.player-selector');
+      if (old) old.remove();
+
+      const selector = document.createElement('div');
+      selector.className = 'player-selector';
+      selector.tabIndex = 0;
+      selector.style.position = 'absolute';
+      selector.style.top = '50px';
+      selector.style.left = '50%';
+      selector.style.transform = 'translateX(-50%)';
+      selector.style.background = '#222';
+      selector.style.border = '1px solid #555';
+      selector.style.borderRadius = '6px';
+      selector.style.padding = '10px';
+      selector.style.zIndex = '999';
+      selector.style.display = 'flex';
+      selector.style.flexDirection = 'column';
+      selector.style.gap = '6px';
+      selector.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+      selector.style.cursor = 'pointer';
+
+      const availableUsers = Object.keys(allData);
+      const alreadySelected = new Set(selectedParty.filter((u, idx) => idx !== slotIndex && u));
+
+      // "None" option
+      const noneOption = document.createElement('div');
+      noneOption.textContent = 'None';
+      noneOption.style.padding = '6px';
+      noneOption.style.borderRadius = '4px';
+      noneOption.style.cursor = 'pointer';
+      noneOption.onmouseenter = () => noneOption.style.background = '#444';
+      noneOption.onmouseleave = () => noneOption.style.background = 'transparent';
+      noneOption.onclick = (e) => {
+        e.stopPropagation();
+        selectedParty[slotIndex] = null;
+        localStorage.setItem('MWI_SelectedPartySlots', JSON.stringify(selectedParty));
+        renderData(allData);
+        updateCurrentPartyName(); // 🔥 Refresh dirty status
+      };
+      selector.appendChild(noneOption);
+
+      availableUsers.forEach(user => {
+        if (alreadySelected.has(user)) return;
+
+        const option = document.createElement('div');
+        option.textContent = user;
+        option.style.padding = '6px';
+        option.style.borderRadius = '4px';
+        option.style.cursor = 'pointer';
+
+        option.onmouseenter = () => option.style.background = '#444';
+        option.onmouseleave = () => option.style.background = 'transparent';
+
+        option.onclick = (e) => {
+          e.stopPropagation();
+          selectedParty[slotIndex] = user;
+          localStorage.setItem('MWI_SelectedPartySlots', JSON.stringify(selectedParty));
+          renderData(allData); // 🔥 Redraw with correct selection
+          updateCurrentPartyName(); // 🔥 Refresh dirty status
+        };
+
+        selector.appendChild(option);
+      });
+
+      card.appendChild(selector);
+      selector.focus();
+
+      selector.addEventListener('blur', () => {
+        selector.remove();
+      });
+
+      setTimeout(() => {
+        document.addEventListener('click', function handler(event) {
+          if (!selector.contains(event.target)) {
+            selector.remove();
+            document.removeEventListener('click', handler);
+          }
+        });
+      }, 50);
+    }
+
+
 
     function highlightCommonTasks(commonZones) {
       document.querySelectorAll('.zone-highlight').forEach(span => {
@@ -588,8 +991,6 @@
     }
 
     function cleanTaskName(taskName) {
-      console.log(taskName);
-      console.log(taskName.replace(/Z\\d+/g, '').replace(/\\s+/g, ' ').trim());
       return taskName.replace(/Z\d+/g, '').replace(/\s+/g, ' ').trim();
     }
 
@@ -602,5 +1003,11 @@
     }
 
   </script>
+  <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:10000;">
+    <div id="modal-content" style="background:#222; padding:20px; border-radius:8px; text-align:center; min-width:300px;">
+      <!-- Dynamic content will go here -->
+    </div>
+  </div>
+
 </body>
 </html>
