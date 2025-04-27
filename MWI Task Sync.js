@@ -29,6 +29,8 @@
     navMinorLinks: '.NavigationBar_minorNavigationLinks__dbxh7'
   };
 
+  const LAST_UPLOAD_TIME = null;
+
   function getCurrentUsername() {
     return document.querySelector(SELECTORS.username)?.getAttribute('data-name') || null;
   }
@@ -107,7 +109,7 @@
       if (res.ok) {
         GM_setValue(`lastUpload_${username}`, { tasks });
         GM_setValue(countKey, currentCount + 1);
-        if (isManual) GM_setValue(`lastManualUpload_${username}`, Date.now());
+        if (isManual) LAST_UPLOAD_TIME = Date.now();
         console.log('[MWI Party Tasks] -- Tasks uploaded!');
       } else {
         console.warn('[MWI Party Tasks] -- Upload error', res.statusText);
@@ -130,11 +132,10 @@
       const username = getCurrentUsername();
       if (!username) return;
 
-      const last = GM_getValue(`lastManualUpload_${username}`, 0);
       const now = Date.now();
 
-      if (now - last < MANUAL_UPLOAD_INTERVAL_MS) {
-        const secondsLeft = Math.ceil((MANUAL_UPLOAD_INTERVAL_MS - (now - last)) / 1000);
+      if (now - LAST_UPLOAD_TIME < MANUAL_UPLOAD_INTERVAL_MS) {
+        const secondsLeft = Math.ceil((MANUAL_UPLOAD_INTERVAL_MS - (now - LAST_UPLOAD_TIME)) / 1000);
         //alert(`⛔ Slow down! Try again in ${secondsLeft}s.`);
         return;
       }
